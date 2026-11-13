@@ -4,13 +4,6 @@ import { LEGACY_CHANNELS } from "@/lib/legacy-channels";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
-  if (pathname === "/") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/index.html";
-    return NextResponse.rewrite(url);
-  }
-
   const parts = pathname.split("/").filter(Boolean);
   const isOnboardingHome = parts.length === 1 && parts[0] === "onboarding";
   const legacyChannel =
@@ -34,5 +27,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/onboarding", "/onboarding/:path*"],
+  matcher: ["/onboarding", "/onboarding/:path*"],
 };

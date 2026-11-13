@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { PHASES, helpMailto } from "@/lib/brand";
 import { currentPhase, dueForPhase, getClientBySlug, listClientItems } from "@/lib/queries";
 import { formatDate } from "@/lib/text";
-import { ItemCard } from "@/components/ItemCard";
-import { PhaseAccordions } from "@/components/PhaseAccordions";
+import { ClientChecklist } from "@/components/ClientChecklist";
 import { Shell, btnPrimary } from "@/components/Shell";
 
 export const dynamic = "force-dynamic";
@@ -14,13 +12,6 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
   title: "Your website checklist — Brandastic",
 };
-
-async function origin() {
-  const headerList = await headers();
-  const host = headerList.get("x-forwarded-host") ?? headerList.get("host") ?? "website.brandastic.com";
-  const proto = headerList.get("x-forwarded-proto") ?? "https";
-  return `${proto}://${host}`;
-}
 
 export default async function ClientPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -32,43 +23,12 @@ export default async function ClientPage({ params }: { params: Promise<{ slug: s
   const percent = items.length ? Math.round((received / items.length) * 100) : 0;
   const current = currentPhase(items);
   const allDone = items.length > 0 && received === items.length;
-  const pageUrl = `${await origin()}/onboarding/${client.slug}`;
-
-  const phases = PHASES.map((phase) => {
-    const inPhase = items.filter((item) => item.phase === phase.id);
-    const phaseReceived = inPhase.filter((item) => item.status === "received").length;
-    const due = formatDate(dueForPhase(client, phase.id));
-    const phasePercent = inPhase.length ? Math.round((phaseReceived / inPhase.length) * 100) : 0;
-    return {
-      id: phase.id,
-      anchors: inPhase.map((item) => item.anchor),
-      summary: (
-        <span className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <span>
-            <span className="block text-base font-bold text-gray-900">{phase.label}</span>
-            <span className="block text-xs text-gray-400 mt-0.5">
-              {due ? `Due ${due}` : "Due date to be added"}
-              {phase.id === current && !allDone ? " · Current phase" : ""}
-            </span>
-          </span>
-          <span className="sm:text-right">
-            <span className="block text-xs font-semibold text-gray-500">
-              {inPhase.length ? `${phaseReceived} of ${inPhase.length} received` : "No items"}
-            </span>
-            <span className="mt-1 block h-1.5 w-full sm:w-28 bg-gray-200 rounded-full overflow-hidden">
-              <span className="block h-full bg-gray-900" style={{ width: `${phasePercent}%` }} />
-            </span>
-          </span>
-        </span>
-      ),
-      body:
-        inPhase.length > 0 ? (
-          inPhase.map((item) => <ItemCard key={item.id} item={item} mode="client" slug={client.slug} pageUrl={pageUrl} />)
-        ) : (
-          <p className="text-sm text-gray-500 px-1">Nothing in this phase for your project.</p>
-        ),
-    };
-  });
+  const phases = PHASES.map((phase) => ({
+    id: phase.id,
+    label: phase.label,
+    due: formatDate(dueForPhase(client, phase.id)),
+    current: phase.id === current && !allDone,
+  }));
 
   return (
     <Shell
@@ -80,8 +40,8 @@ export default async function ClientPage({ params }: { params: Promise<{ slug: s
     >
       <div className="mb-8">
         <h1 className="text-3xl sm:text-4xl font-extrabold">Welcome, {client.name}</h1>
-        <p className="text-gray-500 mt-2 max-w-xl">
-          Send each item when you have it. Upload files to your Google Drive folder. For access items, “I sent it” means the invite is sent.
+        <p className="text-gray-500 mt-2">
+          This is where we’ll collect all the information, files, and access needed to build your website. Submit items as they become available and upload any files to your shared Google Drive folder. Mark items you completed by clicking “I sent it”.
         </p>
         <div className="mt-5">
           <div className="flex items-center justify-between text-xs font-semibold text-gray-500 mb-1.5">
@@ -98,20 +58,17 @@ export default async function ClientPage({ params }: { params: Promise<{ slug: s
             aria-valuemax={items.length}
             aria-label="Overall progress"
           >
-            <div className="h-full bg-gray-900" style={{ width: `${percent}%` }} />
+            <div className="h-full bg-[#40B4E5]" style={{ width: `${percent}%` }} />
           </div>
           {sent > 0 ? <p className="text-xs text-gray-400 mt-2">{sent} sent, waiting for Brandastic to review.</p> : null}
         </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {client.driveUrl ? (
+        {client.driveUrl ? (
+          <div className="mt-4">
             <a href={client.driveUrl} target="_blank" rel="noopener noreferrer" className={btnPrimary}>
               Google Drive folder
             </a>
-          ) : null}
-          <a href={helpMailto(client.name)} className="inline-flex items-center justify-center text-sm font-semibold text-gray-900 bg-white border border-gray-300 px-4 py-2.5 rounded-full hover:bg-gray-50">
-            Need help? Email Sandy
-          </a>
-        </div>
+          </div>
+        ) : null}
       </div>
 
       {allDone ? (
@@ -121,7 +78,24 @@ export default async function ClientPage({ params }: { params: Promise<{ slug: s
         </div>
       ) : null}
 
-      <PhaseAccordions current={current} phases={phases} />
+      <ClientChecklist
+        items={items.map((item) => ({
+          id: item.id,
+          anchor: item.anchor,
+          title: item.title,
+          phase: item.phase,
+          whatWeNeed: item.whatWeNeed,
+          why: item.why,
+          steps: item.steps,
+          doneLooksLike: item.doneLooksLike,
+          allowsResourceLink: item.allowsResourceLink,
+          resourceUrl: item.resourceUrl,
+          status: item.status,
+          note: item.note,
+        }))}
+        phases={phases}
+        current={current}
+      />
     </Shell>
   );
 }

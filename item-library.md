@@ -108,17 +108,13 @@ We use Analytics to set up tracking on the new site and to understand your curre
 
 **Steps**
 
-1. Sign in to Google Analytics at analytics.google.com and open the property for this website.  
-2. Click Admin (the gear icon, usually at the bottom of the left menu).  
-3. Under Property, click Property access management. Use this, not Account access management, unless you want us to see every property in the account.  
-4. Click the \+ button, then Add users.  
-5. Enter seo@brandastic.com, leave the email notification turned on, choose the Editor role, and click Add.
-
-If you don’t have Google Analytics yet, skip the steps above and tell us. We’ll help you set it up.
+1. Visit Google Analytics. Go to analytics.google.com, then click Admin (the gear icon, lower left).  
+2. Go to Account Access Management. Under the Account column, select Account Access Management.  
+3. Add us as Administrator. Click the \+ button, then Add users. Enter seo@brandastic.com, select Administrator, and click Add.
 
 **Done looks like**
 
-seo@brandastic.com has been added with the Editor role, or you’ve told us you don’t have Analytics yet.
+seo@brandastic.com has been added as an Administrator on the account.
 
 **Presets:** A, B, and C
 

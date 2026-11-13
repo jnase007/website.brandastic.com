@@ -3,9 +3,11 @@ import { LOGO_SRC } from "@/lib/brand";
 export function Shell({
   children,
   actions,
+  footer,
 }: {
   children: React.ReactNode;
   actions?: React.ReactNode;
+  footer?: React.ReactNode;
 }) {
   return (
     <>
@@ -20,10 +22,14 @@ export function Shell({
       <main className="max-w-4xl mx-auto px-5 sm:px-6 py-8 sm:py-10">{children}</main>
       <footer className="border-t border-gray-200 mt-12">
         <div className="max-w-4xl mx-auto px-6 py-6 text-center text-xs text-gray-400">
-          © {new Date().getFullYear()} Brandastic ·{" "}
-          <a href="https://brandastic.com" target="_blank" rel="noopener noreferrer" className="hover:text-gray-600">
-            brandastic.com
-          </a>
+          {footer ?? (
+            <>
+              © {new Date().getFullYear()} Brandastic ·{" "}
+              <a href="https://brandastic.com" target="_blank" rel="noopener noreferrer" className="hover:text-gray-600">
+                brandastic.com
+              </a>
+            </>
+          )}
         </div>
       </footer>
     </>
