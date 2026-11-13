@@ -1,3 +1,6 @@
+[build]
+  publish = "public"
+
 [[redirects]]
   from = "/onboarding"
   to = "/onboarding.html"
@@ -5,10 +8,5 @@
 
 [[redirects]]
   from = "/onboarding/"
-  to = "/onboarding.html"
-  status = 200
-
-[[redirects]]
-  from = "/onboarding/*"
   to = "/onboarding.html"
   status = 200

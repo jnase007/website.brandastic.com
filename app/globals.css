@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+.item-card {
+  scroll-margin-top: 5.5rem;
+}
+
+button,
+a,
+summary,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
