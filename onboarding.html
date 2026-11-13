@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-5C5RTG3');
+    (function bootOnboarding(){
+      function run(){
+        var home=document.getElementById('onboarding-home');
+        if(!home) return;
+        // If URL has channel hash/path, open it; else stay on home (no auto step 0)
+        var path=(location.pathname||'')+(location.hash||'');
+        var opened=false;
+        if (typeof channelMap!=='undefined') {
+          var key=(location.hash||'').replace(/^#/,'').toLowerCase();
+          if(!key){
+            var parts=location.pathname.split('/').filter(Boolean);
+            if(parts.length>1 && parts[0]==='onboarding') key=parts[1];
+          }
+          if(key && channelMap[key]!=null){ openChannel(channelMap[key]); opened=true; }
+        }
+        if(!opened){
+          document.querySelectorAll('.step-panel').forEach(function(p){ p.classList.remove('active'); });
+          home.classList.remove('hidden');
+          var chrome=document.getElementById('onboarding-step-chrome');
+          if(chrome) chrome.classList.add('hidden');
+        }
+      }
+      if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', run);
+      else run();
+    })();
+
+  </script>
+<!-- End Google Tag Manager -->
+<!-- GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TTZQH22P4G"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-TTZQH22P4G');</script>
+<!-- End GA4 -->
+<!-- Contentsquare -->
+<script src="https://t.contentsquare.net/uxa/8bc9bd79da299.js" defer></script>
+<!-- Meta Pixel -->
+<script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','5495864097014192');fbq('track','PageView');</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=5495864097014192&ev=PageView&noscript=1"/></noscript>
+<!-- End Meta Pixel -->
+  <meta charset="UTF-8">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="/favicon-192.png" sizes="192x192" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Onboarding — Brandastic</title>
+  <meta name="robots" content="noindex, nofollow">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .step-panel { display: none; animation: fadeIn 0.3s ease; }
+    .step-panel.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .tab-btn.active { background: #111; color: #fff; }
+    .tab-btn.completed { background: #10b981; color: #fff; }
+    @media print {
+      body { background: #fff !important; }
+      header, .no-print { display: none !important; }
+      .flex.gap-2.mb-8.overflow-x-auto { display: none !important; }
+      .step-panel { display: block !important; animation: none !important; break-inside: avoid; page-break-inside: avoid; margin-bottom: 28px !important; }
+      main { max-width: 100% !important; padding: 0 !important; }
+      a { color: #111 !important; text-decoration: none !important; }
+    }
+
+    /* PDF: only the active channel step */
+    body.print-current-only .no-print,
+    body.print-current-only header,
+    body.print-current-only .flex.gap-2.mb-8.overflow-x-auto { display: none !important; }
+    body.print-current-only .step-panel { display: none !important; }
+    body.print-current-only .step-panel.active { display: block !important; animation: none !important; }
+    body.print-current-only main { max-width: 100% !important; padding: 12px !important; }
+    @media print {
+      body { background: #fff !important; }
+      header, .no-print { display: none !important; }
+      .flex.gap-2.mb-8.overflow-x-auto { display: none !important; }
+      body.print-current-only .step-panel { display: none !important; }
+      body.print-current-only .step-panel.active { display: block !important; animation: none !important; page-break-inside: avoid; }
+      a { color: #111 !important; text-decoration: none !important; }
+    }
+
+    body.print-current-only #onboarding-home,
+    body.print-current-only #onboarding-step-chrome,
+    body.print-current-only header,
+    body.print-current-only .no-print { display: none !important; }
+    body.print-current-only .step-panel { display: none !important; }
+    body.print-current-only .step-panel.active { display: block !important; animation: none !important; }
+    body.print-current-only .step-panel.active > div { border: none !important; padding: 0 !important; box-shadow: none !important; }
+    @media print {
+      @page { size: letter portrait; margin: 0.6in; }
+      header, .no-print, #onboarding-home, #onboarding-step-chrome, iframe, .video-embed, video { display: none !important; height: 0 !important; margin: 0 !important; padding: 0 !important; }
+      body.print-current-only .step-panel { display: none !important; }
+      body.print-current-only .step-panel.active { display: block !important; }
+      body.print-current-only .step-panel.active > div { border: none !important; padding: 0 !important; }
+      button { display: none !important; }
+      main { padding: 0 !important; }
+    }
+  </style>
+
+  <script>
+    // Channel URL routing
+    const channelMap = {
+      'google-ads': 0,
+      'google-tag-manager': 1,
+      'gtm': 1,
+      'google-analytics': 2,
+      'ga': 2,
+      'analytics': 2,
+      'google-search-console': 3,
+      'gsc': 3,
+      'search-console': 3,
+      'meta': 4,
+      'facebook': 4,
+      'facebook-ads': 4,
+      'meta-ads': 4,
+      'instagram': 5,
+      'tiktok': 6,
+      'linkedin': 7,
+      'yelp': 8,
+      'google-business': 8,
+      'gbp': 8,
+      'website': 9,
+      'doordash': 10,
+      'mailchimp': 13,
+      'merchant-center': 14,
+      'merchant': 14,
+      'gmc': 14,
+      'google-merchant': 14,
+      'google-merchant-center': 14,
+      'local-services': 15,
+      'local-services-ads': 15,
+      'lsa': 15,
+      'google-lsa': 15,
+      'localservices': 15,
+      'amazon': 16,
+      'amazon-seller': 16,
+      'amazon-ads': 16,
+      'seller-central': 16,
+      'klaviyo': 17,
+      'email': 17,
+      'esp': 17,
+      'shopify': 18,
+      'shopify-store': 18,
+      'shopify-admin': 18,
+    };
+
+    // Check URL on load
+    window.addEventListener('DOMContentLoaded', function() {
+      // Support both /onboarding/meta and /onboarding#meta and ?channel=meta
+      var path = window.location.pathname.replace('/onboarding/', '').replace('/onboarding', '').replace(/^\/|\/$/g, '');
+      var hash = window.location.hash.replace('#', '');
+      var params = new URLSearchParams(window.location.search);
+      var channel = path || hash || params.get('channel') || '';
+      
+      channel = channel.toLowerCase();
+      
+      if (channel && channelMap.hasOwnProperty(channel)) {
+        showStep(channelMap[channel]);
+      }
+    });
+
+    // Update URL when tab is clicked
+    var origShowStep = window.showStep;
+    var slugs = ['google-ads','google-tag-manager','google-analytics','google-search-console','meta','instagram','tiktok','linkedin','yelp','website','doordash','instacart','bing','mailchimp','merchant-center','local-services','amazon','klaviyo','shopify'];
+  </script>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen">
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe class="no-print" src="https://www.googletagmanager.com/ns.html?id=GTM-5C5RTG3" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+  <!-- Header -->
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2">
+        <img src="https://brandastic.com/wp-content/uploads/2025/10/Brandastic_black_logo-5.png" alt="Brandastic" style="height:14px">
+      </a>
+      <div class="flex items-center gap-3 no-print">
+        <button type="button" onclick="downloadCurrentStepPdf()" class="text-xs font-bold text-gray-900 bg-white border border-gray-300 px-3 py-1.5 rounded-full hover:bg-gray-50 transition cursor-pointer" title="Save this channel as a PDF">Download PDF</button>
+        <button type="button" onclick="navigator.clipboard.writeText(window.location.href); var b=this; var old=b.textContent; b.textContent='Copied'; setTimeout(function(){b.textContent=old},2000)" class="text-xs font-bold text-white bg-gray-900 px-3 py-1.5 rounded-full hover:bg-gray-700 transition cursor-pointer">Copy link</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-6 py-10">
+
+    
+    <!-- Home: channel picker -->
+    <div id="onboarding-home" class="mb-10">
+      <div class="text-center mb-8">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-3">Client Onboarding</h1>
+        <p class="text-gray-500 max-w-xl mx-auto">Choose a channel to share access. Each page has only the steps for that platform — download a PDF for just that channel if you need a printout.</p>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <button type="button" onclick="openChannel(0)" class="channel-home-btn text-left rounded-2xl border border-gray-200 bg-white px-5 py-4 hover:border-gray-900 hover:shadow-sm transition group">
+          <div class="text-xs font-semibold text-gray-400 mb-1">01</div>
+          <div class="text-base font-bold text-gray-900 group-hover:text-black">Google Ads</div>
+          <div class="text-xs text-gray-400 mt-1">View steps →</div>
+        </button>
+        <button type="button" onclick="openChannel(1)" class="channel-home-btn text-left rounded-2xl border border-gray-200 bg-white px-5 py-4 hover:border-gray-900 hover:shadow-sm transition group">
+          <div class="text-xs font-semibold text-gray-400 mb-1">02</div>
+          <div class="text-base font-bold text-gray-900 group-hover:text-black">Tag Manager</div>
+          <div class="text-xs text-gray-400 mt-1">View steps →</div>
+        </button>
+        <button type="button" onclick="openChannel(2)" class="channel-home-btn text-left rounded-2xl border border-gray-200 bg-white px-5 py-4 hover:border-gray-900 hover:shadow-sm transition group">
+          <div class="text-xs font-semibold text-gray-400 mb-1">03</div>
+          <div class="text-base font-bold text-gray-900 group-hover:text-black">Analytics</div>
+          <div class="text-xs text-gray-400 mt-1">View steps →</div>
+        </button>
+        <button type="button" onclick="openChannel(3)" class="channel-home-btn text-left rounded-2xl border border-gray-200 bg-white px-5 py-4 hover:border-gray-900 hover:shadow-sm transition group">
+          <div class="text-xs font-semibold text-gray-400 mb-1">04</div>
+          <div class="text-base font-bold text-gray-900 group-hover:text-black">Search Console</div>
+          <div class="text-xs text-gray-400 mt-1">View steps →</div>
+        </button>
+        <button type="button" onclick="openChannel(4)" class="channel-home-btn text-left rounded-2xl border border-gray-200 bg-white px-5 py-4 hover:border-gray-900 hover:shadow-sm transition group">
+          <div class="text-xs font-semibold text-gray-400 mb-1">05</div>
+          <div class="text-base font-bold text-gray-900 group-hover:text-black">Meta Ads</div>
+          <div class="text-xs text-gray-400 mt-1">View steps →</div>
+        </button>
+        <button type="button" onclick="openChannel(5)" class="channel-home-btn text-left rounded-2xl border border-gray-200 bg-white px-5 py-4 hover:border-gray-900 hover:shadow-sm transition group">
+          <div class="text-xs font-semibold text-gray-400 mb-1">06</div>
+          <div class="text-base font-bold text-gray-900 group-hover:text-black">Instagram</div>
+          <div class="text-xs text-gray-400 mt-1">View steps →</div>
+        </button>
+        <button type="button" onclick="openChannel(6)" class="channel-home-btn text-left rounded-2xl border border-gray-200 bg-white px-5 py-4 hover:border-gray-900 hover:shadow-sm transition group">
+          <div class="text-xs font-semibold text-gray-400 mb-1">07</div>
+          <div class="text-base font-bold text-gray-900 group-hover:text-black">TikTok</div>
+          <div class="text-xs text-gray-400 mt-1">View steps →</div>
+        </button>
+        <button type="button" onclick="openChannel(7)" class="channel-home-btn text-left rounded-2xl border border-gray-200 bg-white px-5 py-4 hover:border-gray-900 hover:shadow-sm transition group">
+          <div class="text-xs font-semibold text-gray-400 mb-1">08</div>
+          <div class="text-base font-bold text-gray-900 group-hover:text-black">LinkedIn</div>
+          <div class="text-xs text-gray-400 mt-1">View steps →</div>
+        </button>
+        <button type="button" onclick="openChannel(8)" class="channel-home-btn text-left rounded-2xl border border-gray-200 bg-white px-5 py-4 hover:border-gray-900 hover:shadow-sm transition group">
+          <div class="text-xs font-semibold text-gray-400 mb-1">09</div>
+          <div class="text-base font-bold text-gray-900 group-hover:text-black">Yelp / GBP</div>
+          <div class="text-xs text-gray-400 mt-1">View steps →</div>
+        </button>
+        <button type="button" onclick="openChannel(9)" class="channel-home-btn text-left rounded-2xl border border-gray-200 bg-white px-5 py-4 hover:border-gray-900 hover:shadow-sm transition group">
+          <div class="text-xs font-semibold text-gray-400 mb-1">10</div>
+          <div class="text-base font-bold text-gray-900 group-hover:text-black">Website</div>
+          <div class="text-xs text-gray-400 mt-1">View steps →</div>
+        </button>
+        <button type="button" onclick="openChannel(10)" class="channel-home-btn text-left rounded-2xl border border-gray-200 bg-white px-5 py-4 hover:border-gray-900 hover:shadow-sm transition group">
+          <div class="text-xs font-semibold text-gray-400 mb-1">11</div>
+          <div class="text-base font-bold text-gray-900 group-hover:text-black">DoorDash</div>
+          <div class="text-xs text-gray-400 mt-1">View steps →</div>
+        </button>
+        <button type="button" onclick="openChannel(11)" class="channel-home-btn text-left rounded-2xl border border-gray-200 bg-white px-5 py-4 hover:border-gray-900 hover:shadow-sm transition group">
+          <div class="text-xs font-semibold text-gray-400 mb-1">12</div>
+          <div class="text-base font-bold text-gray-900 group-hover:text-black">Instacart</div>
+          <div class="text-xs text-gray-400 mt-1">View steps →</div>
+        </button>
+        <button type="button" onclick="openChannel(12)" class="channel-home-btn text-left rounded-2xl border border-gray-200 bg-white px-5 py-4 hover:border-gray-900 hover:shadow-sm transition group">
+          <div class="text-xs font-semibold text-gray-400 mb-1">13</div>
+          <div class="text-base font-bold text-gray-900 group-hover:text-black">Bing</div>
+          <div class="text-xs text-gray-400 mt-1">View steps →</div>
+        </button>
+        <button type="button" onclick="openChannel(13)" class="channel-home-btn text-left rounded-2xl border border-gray-200 bg-white px-5 py-4 hover:border-gray-900 hover:shadow-sm transition group">
+          <div class="text-xs font-semibold text-gray-400 mb-1">14</div>
+          <div class="text-base font-bold text-gray-900 group-hover:text-black">Mailchimp</div>
+          <div class="text-xs text-gray-400 mt-1">View steps →</div>
+        </button>
+        <button type="button" onclick="openChannel(14)" class="channel-home-btn text-left rounded-2xl border border-gray-200 bg-white px-5 py-4 hover:border-gray-900 hover:shadow-sm transition group">
+          <div class="text-xs font-semibold text-gray-400 mb-1">15</div>
+          <div class="text-base font-bold text-gray-900 group-hover:text-black">Merchant Center</div>
+          <div class="text-xs text-gray-400 mt-1">View steps →</div>
+        </button>
+        <button type="button" onclick="openChannel(15)" class="channel-home-btn text-left rounded-2xl border border-gray-200 bg-white px-5 py-4 hover:border-gray-900 hover:shadow-sm transition group">
+          <div class="text-xs font-semibold text-gray-400 mb-1">16</div>
+          <div class="text-base font-bold text-gray-900 group-hover:text-black">Local Services</div>
+          <div class="text-xs text-gray-400 mt-1">View steps →</div>
+        </button>
+        <button type="button" onclick="openChannel(16)" class="channel-home-btn text-left rounded-2xl border border-gray-200 bg-white px-5 py-4 hover:border-gray-900 hover:shadow-sm transition group">
+          <div class="text-xs font-semibold text-gray-400 mb-1">17</div>
+          <div class="text-base font-bold text-gray-900 group-hover:text-black">Amazon</div>
+          <div class="text-xs text-gray-400 mt-1">View steps →</div>
+        </button>
+        <button type="button" onclick="openChannel(17)" class="channel-home-btn text-left rounded-2xl border border-gray-200 bg-white px-5 py-4 hover:border-gray-900 hover:shadow-sm transition group">
+          <div class="text-xs font-semibold text-gray-400 mb-1">18</div>
+          <div class="text-base font-bold text-gray-900 group-hover:text-black">Klaviyo</div>
+          <div class="text-xs text-gray-400 mt-1">View steps →</div>
+        </button>
+        <button type="button" onclick="openChannel(18)" class="channel-home-btn text-left rounded-2xl border border-gray-200 bg-white px-5 py-4 hover:border-gray-900 hover:shadow-sm transition group">
+          <div class="text-xs font-semibold text-gray-400 mb-1">19</div>
+          <div class="text-base font-bold text-gray-900 group-hover:text-black">Shopify</div>
+          <div class="text-xs text-gray-400 mt-1">View steps →</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step mode chrome -->
+    <div id="onboarding-step-chrome" class="hidden no-print mb-6">
+      <button type="button" onclick="backToHome()" class="text-sm font-semibold text-gray-600 hover:text-gray-900 inline-flex items-center gap-1 mb-4">← All channels</button>
+      <div class="flex gap-2 overflow-x-auto pb-2" id="step-tab-row">
+        <button type="button" onclick="openChannel(0)" id="tab-0" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold border border-gray-200 bg-white whitespace-nowrap transition-all">Google Ads</button>
+        <button type="button" onclick="openChannel(1)" id="tab-1" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold border border-gray-200 bg-white whitespace-nowrap transition-all">Tag Manager</button>
+        <button type="button" onclick="openChannel(2)" id="tab-2" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold border border-gray-200 bg-white whitespace-nowrap transition-all">Analytics</button>
+        <button type="button" onclick="openChannel(3)" id="tab-3" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold border border-gray-200 bg-white whitespace-nowrap transition-all">Search Console</button>
+        <button type="button" onclick="openChannel(4)" id="tab-4" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold border border-gray-200 bg-white whitespace-nowrap transition-all">Meta Ads</button>
+        <button type="button" onclick="openChannel(5)" id="tab-5" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold border border-gray-200 bg-white whitespace-nowrap transition-all">Instagram</button>
+        <button type="button" onclick="openChannel(6)" id="tab-6" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold border border-gray-200 bg-white whitespace-nowrap transition-all">TikTok</button>
+        <button type="button" onclick="openChannel(7)" id="tab-7" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold border border-gray-200 bg-white whitespace-nowrap transition-all">LinkedIn</button>
+        <button type="button" onclick="openChannel(8)" id="tab-8" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold border border-gray-200 bg-white whitespace-nowrap transition-all">Yelp / GBP</button>
+        <button type="button" onclick="openChannel(9)" id="tab-9" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold border border-gray-200 bg-white whitespace-nowrap transition-all">Website</button>
+        <button type="button" onclick="openChannel(10)" id="tab-10" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold border border-gray-200 bg-white whitespace-nowrap transition-all">DoorDash</button>
+        <button type="button" onclick="openChannel(11)" id="tab-11" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold border border-gray-200 bg-white whitespace-nowrap transition-all">Instacart</button>
+        <button type="button" onclick="openChannel(12)" id="tab-12" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold border border-gray-200 bg-white whitespace-nowrap transition-all">Bing</button>
+        <button type="button" onclick="openChannel(13)" id="tab-13" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold border border-gray-200 bg-white whitespace-nowrap transition-all">Mailchimp</button>
+        <button type="button" onclick="openChannel(14)" id="tab-14" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold border border-gray-200 bg-white whitespace-nowrap transition-all">Merchant Center</button>
+        <button type="button" onclick="openChannel(15)" id="tab-15" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold border border-gray-200 bg-white whitespace-nowrap transition-all">Local Services</button>
+        <button type="button" onclick="openChannel(16)" id="tab-16" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold border border-gray-200 bg-white whitespace-nowrap transition-all">Amazon</button>
+        <button type="button" onclick="openChannel(17)" id="tab-17" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold border border-gray-200 bg-white whitespace-nowrap transition-all">Klaviyo</button>
+        <button type="button" onclick="openChannel(18)" id="tab-18" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold border border-gray-200 bg-white whitespace-nowrap transition-all">Shopify</button>
+      </div>
+    </div>
+
+    <!-- Step 1: Google Ads -->
+    <div class="step-panel" id="panel-0">
+      <div class="bg-white rounded-2xl border border-gray-200 p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+            <span class="text-lg font-bold text-blue-600">1</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">Google Ads</h2>
+            <p class="text-sm text-gray-400">Share your Ads account for campaign management</p>
+          <div data-step-id-box class="mt-4 mb-2 p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">Invite email for this step</p>
+              <p class="text-sm font-bold text-gray-900">seo@brandastic.com</p>
+            </div>
+            <button type="button" onclick="navigator.clipboard.writeText('seo@brandastic.com'); this.textContent='Copied'; setTimeout(()=>this.textContent='Copy',2000)" class="text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-full">Copy</button>
+          </div>
+          </div>
+        </div>
+        <div class="space-y-4 mb-8">
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">a</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Visit Google Ads</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <a href="https://business.google.com/in/google-ads/" target="_blank" class="text-blue-600 underline">business.google.com/in/google-ads</a> and sign in</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">b</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Send us your Ads ID</p>
+              <p class="text-xs text-gray-500 mt-0.5">Find the <strong>Google Ads ID Number</strong> in the top left corner and send it to us</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">c</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Accept our access request</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <strong>Admin → Access and Security → Managers tab</strong> and accept the manager link request</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-lime-50 border border-lime-100 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-lime-100 text-lime-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">+</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Running Shopping / Performance Max product ads?</p>
+              <p class="text-xs text-gray-500 mt-0.5">Also complete the <button type="button" onclick="showStep(14)" class="text-blue-600 underline font-semibold">Google Merchant Center</button> step so we can manage your product feed.</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <button onclick="markDone(0)" id="done-0" class="px-6 py-2.5 bg-gray-900 text-white rounded-full text-sm font-semibold hover:bg-gray-700 transition">Mark as Done ✓</button>
+          <button onclick="showStep(1)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">Next: Tag Manager →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Google Tag Manager -->
+    <div class="step-panel" id="panel-1">
+      <div class="bg-white rounded-2xl border border-gray-200 p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+            <span class="text-lg font-bold text-amber-600">2</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">Google Tag Manager</h2>
+            <p class="text-sm text-gray-400">Share container access for tracking management</p>
+          <div data-step-id-box class="mt-4 mb-2 p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">Invite email for this step</p>
+              <p class="text-sm font-bold text-gray-900">seo@brandastic.com</p>
+            </div>
+            <button type="button" onclick="navigator.clipboard.writeText('seo@brandastic.com'); this.textContent='Copied'; setTimeout(()=>this.textContent='Copy',2000)" class="text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-full">Copy</button>
+          </div>
+          </div>
+        </div>
+        <div class="space-y-4 mb-8">
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">a</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Visit Tag Manager</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <a href="https://tagmanager.google.com/" target="_blank" class="text-blue-600 underline">tagmanager.google.com</a> and sign in</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">b</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Open settings & add user</p>
+              <p class="text-xs text-gray-500 mt-0.5">Click the ⚙️ icon on your account, then <strong>"Add users"</strong></p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">c</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Share with Administrator access</p>
+              <p class="text-xs text-gray-500 mt-0.5">Add <strong>seo@brandastic.com</strong> → check <strong>Administrator</strong> → click <strong>Invite</strong></p>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <button onclick="markDone(1)" id="done-1" class="px-6 py-2.5 bg-gray-900 text-white rounded-full text-sm font-semibold hover:bg-gray-700 transition">Mark as Done ✓</button>
+          <div class="flex gap-3">
+            <button onclick="showStep(0)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">← Back</button>
+            <button onclick="showStep(2)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">Next: Analytics →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Google Analytics -->
+    <div class="step-panel" id="panel-2">
+      <div class="bg-white rounded-2xl border border-gray-200 p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
+            <span class="text-lg font-bold text-green-600">3</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">Google Analytics</h2>
+            <p class="text-sm text-gray-400">Share analytics for performance tracking</p>
+          <div data-step-id-box class="mt-4 mb-2 p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">Invite email for this step</p>
+              <p class="text-sm font-bold text-gray-900">seo@brandastic.com</p>
+            </div>
+            <button type="button" onclick="navigator.clipboard.writeText('seo@brandastic.com'); this.textContent='Copied'; setTimeout(()=>this.textContent='Copy',2000)" class="text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-full">Copy</button>
+          </div>
+          </div>
+        </div>
+        <div class="space-y-4 mb-8">
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">a</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Visit Google Analytics</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <a href="https://analytics.google.com/analytics/web/" target="_blank" class="text-blue-600 underline">analytics.google.com</a> → ⚙️ Admin panel (lower left)</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">b</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Go to Account Access Management</p>
+              <p class="text-xs text-gray-500 mt-0.5">Under the <strong>Account</strong> column, select <strong>Account Access Management</strong></p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">c</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Add us as Administrator</p>
+              <p class="text-xs text-gray-500 mt-0.5">Click <strong>+ Add users</strong> → enter <strong>seo@brandastic.com</strong> → select <strong>Administrator</strong> → click <strong>Add</strong></p>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <button onclick="markDone(2)" id="done-2" class="px-6 py-2.5 bg-gray-900 text-white rounded-full text-sm font-semibold hover:bg-gray-700 transition">Mark as Done ✓</button>
+          <div class="flex gap-3">
+            <button onclick="showStep(1)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">← Back</button>
+            <button onclick="showStep(3)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">Next: Search Console →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Google Search Console -->
+    <div class="step-panel" id="panel-3">
+      <div class="bg-white rounded-2xl border border-gray-200 p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center">
+            <span class="text-lg font-bold text-purple-600">4</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">Google Search Console</h2>
+            <p class="text-sm text-gray-400">Share search data for SEO optimization</p>
+          <div data-step-id-box class="mt-4 mb-2 p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">Invite email for this step</p>
+              <p class="text-sm font-bold text-gray-900">seo@brandastic.com</p>
+            </div>
+            <button type="button" onclick="navigator.clipboard.writeText('seo@brandastic.com'); this.textContent='Copied'; setTimeout(()=>this.textContent='Copy',2000)" class="text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-full">Copy</button>
+          </div>
+          </div>
+        </div>
+        <div class="space-y-4 mb-8">
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">a</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Visit Search Console</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <a href="https://search.google.com/search-console/" target="_blank" class="text-blue-600 underline">search.google.com/search-console</a></p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">b</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Open Users and Permissions</p>
+              <p class="text-xs text-gray-500 mt-0.5">Click ⚙️ <strong>Settings</strong> → <strong>Users and permissions</strong> → <strong>Add user</strong></p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">c</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Add with Full permission</p>
+              <p class="text-xs text-gray-500 mt-0.5">Enter <strong>seo@brandastic.com</strong> → select <strong>Full</strong> permission → click <strong>Add</strong></p>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <button onclick="markDone(3)" id="done-3" class="px-6 py-2.5 bg-gray-900 text-white rounded-full text-sm font-semibold hover:bg-gray-700 transition">Mark as Done ✓</button>
+          <button onclick="showStep(2)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">← Back</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5: Meta Ads (Facebook) -->
+    <div class="step-panel" id="panel-4">
+      <div class="bg-white rounded-2xl border border-gray-200 p-8">
+        <div class="no-print video-embed" style="padding:56.25% 0 0 0;position:relative;margin:0 0 1.5rem 0;border-radius:12px;overflow:hidden"><iframe class="no-print" src="https://player.vimeo.com/video/1111091835?autoplay=0&title=0&byline=0&portrait=0" style="position:absolute;top:0;left:0;width:100%;height:100%" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>
+        <p class="text-sm text-gray-500 mb-4 no-print">Watch the walkthrough above, then follow the steps below.</p>
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center">
+            <span class="text-lg font-bold text-sky-600">5</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">Meta Business Suite / Facebook Ads</h2>
+            <p class="text-sm text-gray-400">Share ad account access for Facebook & Instagram campaigns</p>
+          <div data-step-id-box class="mt-4 mb-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p class="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">Partner email</p>
+                <p class="text-sm font-bold text-gray-900">seo@brandastic.com</p>
+              </div>
+              <button type="button" onclick="navigator.clipboard.writeText('seo@brandastic.com'); this.textContent='Copied'; setTimeout(()=>this.textContent='Copy email',2000)" class="text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-full">Copy email</button>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-3 mt-3 pt-3 border-t border-gray-200">
+              <div>
+                <p class="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">Meta Business ID</p>
+                <p class="text-sm font-bold text-gray-900">815447868632897</p>
+              </div>
+              <button type="button" onclick="navigator.clipboard.writeText('815447868632897'); this.textContent='Copied'; setTimeout(()=>this.textContent='Copy ID',2000)" class="text-xs font-semibold bg-white border border-gray-300 text-gray-900 px-3 py-1.5 rounded-full">Copy ID</button>
+            </div>
+          </div>
+          </div>
+        </div>
+        <div class="space-y-4 mb-8">
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">a</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Visit Meta Business Suite</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <a href="https://business.facebook.com/settings/" target="_blank" class="text-blue-600 underline">business.facebook.com/settings</a> and sign in</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">b</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Go to People</p>
+              <p class="text-xs text-gray-500 mt-0.5">Navigate to <strong>Settings → People</strong> and click <strong>"Add People"</strong></p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">c</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Add Brandastic as a Partner</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <strong>Settings → Business Partners → Add</strong> → enter our Business ID:</p>
+              <div class="mt-2 inline-flex items-center gap-2 bg-white border border-sky-200 rounded-lg px-3 py-2">
+                <code class="text-sm font-bold text-sky-700">815447868632897</code>
+                <button onclick="navigator.clipboard.writeText('815447868632897'); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy',2000)" class="text-[10px] bg-sky-600 text-white px-2 py-0.5 rounded-full hover:bg-sky-700 transition">Copy</button>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">d</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Assign Ad Account & Pages</p>
+              <p class="text-xs text-gray-500 mt-0.5">After adding us as a partner, assign access to your <strong>Ad Account</strong>, <strong>Facebook Page</strong>, and <strong>Instagram Account</strong> with <strong>Manage Campaigns</strong> permission</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">e</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Share Meta Pixel</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <strong>Data Sources → Pixels</strong> → select your pixel → <strong>Add People</strong> → add <strong>seo@brandastic.com</strong></p>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <button onclick="markDone(4)" id="done-4" class="px-6 py-2.5 bg-gray-900 text-white rounded-full text-sm font-semibold hover:bg-gray-700 transition">Mark as Done ✓</button>
+          <div class="flex gap-3">
+            <button onclick="showStep(3)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">← Back</button>
+            <button onclick="showStep(5)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">Next: Instagram →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 6: Instagram -->
+    <div class="step-panel" id="panel-5">
+      <div class="bg-white rounded-2xl border border-gray-200 p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-pink-50 flex items-center justify-center">
+            <span class="text-lg font-bold text-pink-600">6</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">Instagram Business</h2>
+            <p class="text-sm text-gray-400">Connect Instagram for social media management</p>
+          <div data-step-id-box class="mt-4 mb-2 p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">Invite email for this step</p>
+              <p class="text-sm font-bold text-gray-900">seo@brandastic.com</p>
+            </div>
+            <button type="button" onclick="navigator.clipboard.writeText('seo@brandastic.com'); this.textContent='Copied'; setTimeout(()=>this.textContent='Copy',2000)" class="text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-full">Copy</button>
+          </div>
+          </div>
+        </div>
+        <div class="space-y-4 mb-8">
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-pink-100 text-pink-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">a</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Ensure Instagram is a Business or Creator account</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to Instagram → Settings → Account → switch to <strong>Professional Account</strong> if not already</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-pink-100 text-pink-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">b</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Connect to Facebook Page</p>
+              <p class="text-xs text-gray-500 mt-0.5">Make sure your Instagram is connected to your Facebook Business Page in Meta Business Suite</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-pink-100 text-pink-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">c</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Grant access via Meta Business Suite</p>
+              <p class="text-xs text-gray-500 mt-0.5">In <a href="https://business.facebook.com/settings/instagram-accounts" target="_blank" class="text-blue-600 underline">Business Settings → Instagram Accounts</a> → Add People → add <strong>seo@brandastic.com</strong></p>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <button onclick="markDone(5)" id="done-5" class="px-6 py-2.5 bg-gray-900 text-white rounded-full text-sm font-semibold hover:bg-gray-700 transition">Mark as Done ✓</button>
+          <div class="flex gap-3">
+            <button onclick="showStep(4)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">← Back</button>
+            <button onclick="showStep(6)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">Next: Website →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 7: TikTok -->
+    <div class="step-panel" id="panel-6">
+      <div class="bg-white rounded-2xl border border-gray-200 p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
+            <span class="text-lg font-bold text-red-600">7</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">TikTok Business</h2>
+            <p class="text-sm text-gray-400">Share TikTok Ads & Business Center access</p>
+          <div data-step-id-box class="mt-4 mb-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p class="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">Partner email</p>
+                <p class="text-sm font-bold text-gray-900">seo@brandastic.com</p>
+              </div>
+              <button type="button" onclick="navigator.clipboard.writeText('seo@brandastic.com'); this.textContent='Copied'; setTimeout(()=>this.textContent='Copy email',2000)" class="text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-full">Copy email</button>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-3 mt-3 pt-3 border-t border-gray-200">
+              <div>
+                <p class="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">TikTok Business ID</p>
+                <p class="text-sm font-bold text-gray-900">7026042071072915458</p>
+              </div>
+              <button type="button" onclick="navigator.clipboard.writeText('7026042071072915458'); this.textContent='Copied'; setTimeout(()=>this.textContent='Copy ID',2000)" class="text-xs font-semibold bg-white border border-gray-300 text-gray-900 px-3 py-1.5 rounded-full">Copy ID</button>
+            </div>
+          </div>
+          </div>
+        </div>
+        <div class="space-y-4 mb-8">
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">a</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Visit TikTok Business Center</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <a href="https://business.tiktok.com/" target="_blank" class="text-blue-600 underline">business.tiktok.com</a> and sign in</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">b</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Add Brandastic as a Partner</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <strong>Partners → Add Partner</strong> and enter our Business Center ID:</p>
+              <div class="mt-2 inline-flex items-center gap-2 bg-white border border-red-200 rounded-lg px-3 py-2">
+                <code class="text-sm font-bold text-red-700">7026042071072915458</code>
+                <button onclick="navigator.clipboard.writeText('7026042071072915458'); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy',2000)" class="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded-full hover:bg-red-700 transition">Copy</button>
+              </div>
+              <p class="text-xs text-gray-400 mt-1">Brandastic Inc</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">c</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Share Ad Account access</p>
+              <p class="text-xs text-gray-500 mt-0.5">Under <strong>Ad Accounts</strong>, assign our member access to your ad account with <strong>Advertiser</strong> permissions</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">d</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Share TikTok Pixel (if set up)</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <strong>Assets → Events → Web Events</strong> → share pixel access with our member</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <button onclick="markDone(6)" id="done-6" class="px-6 py-2.5 bg-gray-900 text-white rounded-full text-sm font-semibold hover:bg-gray-700 transition">Mark as Done ✓</button>
+          <div class="flex gap-3">
+            <button onclick="showStep(5)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">← Back</button>
+            <button onclick="showStep(7)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">Next: LinkedIn →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 8: LinkedIn -->
+    <div class="step-panel" id="panel-7">
+      <div class="bg-white rounded-2xl border border-gray-200 p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
+            <span class="text-lg font-bold text-indigo-600">8</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">LinkedIn</h2>
+            <p class="text-sm text-gray-400">Share Company Page & Campaign Manager access</p>
+          <div data-step-id-box class="mt-4 mb-2 p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">Invite email for this step</p>
+              <p class="text-sm font-bold text-gray-900">justin@brandastic.com</p>
+            </div>
+            <button type="button" onclick="navigator.clipboard.writeText('justin@brandastic.com'); this.textContent='Copied'; setTimeout(()=>this.textContent='Copy',2000)" class="text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-full">Copy</button>
+          </div>
+          </div>
+        </div>
+        <div class="space-y-4 mb-8">
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">a</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Add us as Page Admin</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to your <strong>LinkedIn Company Page → Settings → Manage Admins</strong> → add <strong>justin@brandastic.com</strong> as <strong>Super Admin</strong></p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">b</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Share Campaign Manager access (if running ads)</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <a href="https://www.linkedin.com/campaignmanager/" target="_blank" class="text-blue-600 underline">LinkedIn Campaign Manager</a> → <strong>Account Settings → Manage Access</strong> → add <strong>justin@brandastic.com</strong> as <strong>Account Manager</strong></p>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <button onclick="markDone(7)" id="done-7" class="px-6 py-2.5 bg-gray-900 text-white rounded-full text-sm font-semibold hover:bg-gray-700 transition">Mark as Done ✓</button>
+          <div class="flex gap-3">
+            <button onclick="showStep(6)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">← Back</button>
+            <button onclick="showStep(8)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">Next: Yelp / GBP →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 9: Yelp / Google Business Profile -->
+    <div class="step-panel" id="panel-8">
+      <div class="bg-white rounded-2xl border border-gray-200 p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
+            <span class="text-lg font-bold text-orange-600">9</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">Yelp & Google Business Profile</h2>
+            <p class="text-sm text-gray-400">Share local listing access for reputation management</p>
+          <div data-step-id-box class="mt-4 mb-2 p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">Invite email for this step</p>
+              <p class="text-sm font-bold text-gray-900">seo@brandastic.com</p>
+            </div>
+            <button type="button" onclick="navigator.clipboard.writeText('seo@brandastic.com'); this.textContent='Copied'; setTimeout(()=>this.textContent='Copy',2000)" class="text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-full">Copy</button>
+          </div>
+          </div>
+        </div>
+        <div class="space-y-4 mb-8">
+          <div class="p-4 bg-orange-50 border border-orange-100 rounded-xl">
+            <p class="text-sm font-semibold text-orange-900">Add Brandastic on both listings</p>
+            <p class="text-xs text-orange-800/80 mt-1">Use <strong>seo@brandastic.com</strong>. For Google, choose <strong>Manager</strong> (not Owner unless we ask).</p>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">a</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Google Business Profile (formerly Google My Business)</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <a href="https://business.google.com/" target="_blank" class="text-blue-600 underline">business.google.com</a> → sign in as the owner → select your business → <strong>Users</strong> (or <strong>People and access</strong>) → <strong>Add users</strong> → enter <strong>seo@brandastic.com</strong> → role <strong>Manager</strong> → send invite. If you have multiple locations, add us on each one we manage.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">b</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Yelp for Business</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <a href="https://biz.yelp.com/" target="_blank" class="text-blue-600 underline">biz.yelp.com</a> → <strong>Account Settings → User Management</strong> → invite <strong>seo@brandastic.com</strong> with full access</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <button onclick="markDone(8)" id="done-8" class="px-6 py-2.5 bg-gray-900 text-white rounded-full text-sm font-semibold hover:bg-gray-700 transition">Mark as Done ✓</button>
+          <div class="flex gap-3">
+            <button onclick="showStep(7)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">← Back</button>
+            <button onclick="showStep(9)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">Next: Website →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 10: Website Access -->
+    <div class="step-panel" id="panel-9">
+      <div class="bg-white rounded-2xl border border-gray-200 p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center">
+            <span class="text-lg font-bold text-teal-600">10</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">Website Access</h2>
+            <p class="text-sm text-gray-400">Share CMS or hosting access for landing pages and tracking</p>
+          <div data-step-id-box class="mt-4 mb-2 p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">Invite email for this step</p>
+              <p class="text-sm font-bold text-gray-900">seo@brandastic.com</p>
+            </div>
+            <button type="button" onclick="navigator.clipboard.writeText('seo@brandastic.com'); this.textContent='Copied'; setTimeout(()=>this.textContent='Copy',2000)" class="text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-full">Copy</button>
+          </div>
+          </div>
+        </div>
+        <div class="space-y-4 mb-8">
+          <div class="p-4 bg-teal-50 border border-teal-100 rounded-xl">
+            <p class="text-sm font-semibold text-teal-900">WordPress (most common)</p>
+            <p class="text-xs text-teal-800/80 mt-1">Create a real admin user for Brandastic — don't share your personal login.</p>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">a</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Log in to WordPress admin</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <strong>yoursite.com/wp-admin</strong> (or your custom admin URL) and sign in with an account that can manage users</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">b</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Open Users → Add New</p>
+              <p class="text-xs text-gray-500 mt-0.5">In the left menu click <strong>Users</strong> → <strong>Add New User</strong> (or <strong>Add New</strong>)</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">c</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Create the Brandastic user</p>
+              <p class="text-xs text-gray-500 mt-0.5">Use these details:</p>
+              <ul class="text-xs text-gray-500 mt-2 space-y-1 list-disc pl-4">
+                <li><strong>Username:</strong> brandastic (or brandastic-seo)</li>
+                <li><strong>Email:</strong> <strong>seo@brandastic.com</strong></li>
+                <li><strong>Role:</strong> <strong>Administrator</strong></li>
+                <li>Check <strong>Send the new user an email about their account</strong> so we get the invite / password reset</li>
+              </ul>
+              <p class="text-xs text-gray-500 mt-2">Click <strong>Add New User</strong> / <strong>Add User</strong></p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">d</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Confirm we can log in</p>
+              <p class="text-xs text-gray-500 mt-0.5">If your host uses extra security (Wordfence, 2FA, IP allowlists, custom login URL), whitelist <strong>seo@brandastic.com</strong> or email us the login URL + any extra steps so we can actually access the dashboard</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">e</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Shopify store?</p>
+              <p class="text-xs text-gray-500 mt-0.5">Use the dedicated Shopify page: <a href="/shopify" class="text-blue-600 underline font-semibold">audit.brandastic.com/shopify</a> (also <a href="/onboarding/shopify" class="text-blue-600 underline">/onboarding/shopify</a>). This Website step stays for WordPress / hosting.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">f</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Other CMS (Wix, Squarespace, Webflow, custom)</p>
+              <p class="text-xs text-gray-500 mt-0.5">Email <strong>seo@brandastic.com</strong> your platform name and we'll send exact invite steps. Or invite <strong>seo@brandastic.com</strong> as an admin/editor from your site settings if the option is obvious</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">g</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Domain / DNS access (optional)</p>
+              <p class="text-xs text-gray-500 mt-0.5">Share domain registrar access (GoDaddy, Namecheap, Cloudflare) only if we need subdomains, DNS records, or ownership verification</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <button onclick="markDone(9)" id="done-9" class="px-6 py-2.5 bg-gray-900 text-white rounded-full text-sm font-semibold hover:bg-gray-700 transition">Mark as Done ✓</button>
+          <button onclick="showStep(8)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">← Back</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 11: DoorDash -->
+    <div class="step-panel" id="panel-10">
+      <div class="bg-white rounded-2xl border border-gray-200 p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
+            <span class="text-lg font-bold text-red-600">11</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">DoorDash Ads</h2>
+            <p class="text-sm text-gray-400">Share DoorDash Merchant or Ads Manager access</p>
+          <div data-step-id-box class="mt-4 mb-2 p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">Invite email for this step</p>
+              <p class="text-sm font-bold text-gray-900">seo@brandastic.com</p>
+            </div>
+            <button type="button" onclick="navigator.clipboard.writeText('seo@brandastic.com'); this.textContent='Copied'; setTimeout(()=>this.textContent='Copy',2000)" class="text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-full">Copy</button>
+          </div>
+          </div>
+        </div>
+        <div class="space-y-4 mb-8">
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">a</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Visit DoorDash Merchant Portal</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <a href="https://merchants.doordash.com/" target="_blank" class="text-blue-600 underline">merchants.doordash.com</a> and sign in</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">b</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Add us as a team member</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <strong>Settings → Team Management → Add Member</strong> → enter <strong>seo@brandastic.com</strong> with <strong>Admin</strong> or <strong>Manager</strong> role</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">c</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Share Sponsored Listings / Ads access</p>
+              <p class="text-xs text-gray-500 mt-0.5">Ensure our account has access to <strong>Promotions</strong> and <strong>Sponsored Listings</strong> sections so we can manage ad campaigns</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">d</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Send us your Store ID(s)</p>
+              <p class="text-xs text-gray-500 mt-0.5">Share your DoorDash Store ID so we can identify and manage the correct locations</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <button onclick="markDone(10)" id="done-10" class="px-6 py-2.5 bg-gray-900 text-white rounded-full text-sm font-semibold hover:bg-gray-700 transition">Mark as Done ✓</button>
+          <div class="flex gap-3">
+            <button onclick="showStep(9)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">← Back</button>
+            <button onclick="showStep(11)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">Next: Instacart →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 12: Instacart -->
+    <div class="step-panel" id="panel-11">
+      <div class="bg-white rounded-2xl border border-gray-200 p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+            <span class="text-lg font-bold text-emerald-600">12</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">Instacart Ads</h2>
+            <p class="text-sm text-gray-400">Share Instacart Ads Portal access for sponsored product campaigns</p>
+          <div data-step-id-box class="mt-4 mb-2 p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">Invite email for this step</p>
+              <p class="text-sm font-bold text-gray-900">seo@brandastic.com</p>
+            </div>
+            <button type="button" onclick="navigator.clipboard.writeText('seo@brandastic.com'); this.textContent='Copied'; setTimeout(()=>this.textContent='Copy',2000)" class="text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-full">Copy</button>
+          </div>
+          </div>
+        </div>
+        <div class="space-y-4 mb-8">
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">a</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Visit Instacart Ads Manager</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <a href="https://ads.instacart.com/" target="_blank" class="text-blue-600 underline">ads.instacart.com</a> and sign in</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">b</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Add us as a team member</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <strong>Settings → User Management → Invite User</strong> → enter <strong>seo@brandastic.com</strong> with <strong>Admin</strong> access</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">c</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Grant campaign management access</p>
+              <p class="text-xs text-gray-500 mt-0.5">Ensure our account can manage <strong>Sponsored Products</strong>, <strong>Display Ads</strong>, and view <strong>Analytics / Reporting</strong></p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">d</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Share your Brand / Advertiser ID</p>
+              <p class="text-xs text-gray-500 mt-0.5">Send us your Instacart Advertiser ID so we can confirm we're managing the correct account</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <button onclick="markDone(11)" id="done-11" class="px-6 py-2.5 bg-gray-900 text-white rounded-full text-sm font-semibold hover:bg-gray-700 transition">Mark as Done ✓</button>
+          <button onclick="showStep(10)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">← Back</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 13: Bing / Microsoft Ads -->
+    <div class="step-panel" id="panel-12">
+      <div class="bg-white rounded-2xl border border-gray-200 p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-cyan-50 flex items-center justify-center">
+            <span class="text-lg font-bold text-cyan-600">13</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">Microsoft / Bing Ads</h2>
+            <p class="text-sm text-gray-400">Share Microsoft Advertising account access</p>
+          <div data-step-id-box class="mt-4 mb-2 p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">Invite email for this step</p>
+              <p class="text-sm font-bold text-gray-900">seo@brandastic.com</p>
+            </div>
+            <button type="button" onclick="navigator.clipboard.writeText('seo@brandastic.com'); this.textContent='Copied'; setTimeout(()=>this.textContent='Copy',2000)" class="text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-full">Copy</button>
+          </div>
+          </div>
+        </div>
+        <div class="space-y-4 mb-8">
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-cyan-100 text-cyan-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">a</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Visit Microsoft Advertising</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <a href="https://ads.microsoft.com/" target="_blank" class="text-blue-600 underline">ads.microsoft.com</a> and sign in</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-cyan-100 text-cyan-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">b</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Invite us to your account</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <strong>Tools → Account Access → Invite User</strong> → enter <strong>seo@brandastic.com</strong> → select <strong>Super Admin</strong> or <strong>Standard User</strong> role</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-cyan-100 text-cyan-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">c</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Or link to our Manager Account</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <strong>Accounts → Link to Manager Account</strong> and enter our Manager Account ID (ask your account manager for this)</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-cyan-100 text-cyan-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">d</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Share your Microsoft Ads Account Number</p>
+              <p class="text-xs text-gray-500 mt-0.5">Send us your <strong>Account Number</strong> and <strong>Customer ID</strong> from the top of your Microsoft Ads dashboard</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-cyan-100 text-cyan-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">e</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">UET Tag access (if set up)</p>
+              <p class="text-xs text-gray-500 mt-0.5">Ensure we have access to your <strong>UET (Universal Event Tracking)</strong> tag for conversion tracking</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <button onclick="markDone(12)" id="done-12" class="px-6 py-2.5 bg-gray-900 text-white rounded-full text-sm font-semibold hover:bg-gray-700 transition">Mark as Done ✓</button>
+          <button onclick="showStep(11)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">← Back</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 14: Mailchimp -->
+    <div class="step-panel" id="panel-13">
+      <div class="bg-white rounded-2xl border border-gray-200 p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-yellow-50 flex items-center justify-center">
+            <span class="text-lg font-bold text-yellow-600">14</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">Mailchimp</h2>
+            <p class="text-sm text-gray-400">Invite Brandastic as a user to your Mailchimp account. Using Klaviyo? See the <button type="button" onclick="showStep(17)" class="text-blue-600 underline font-semibold">Klaviyo</button> step.</p>
+          <div data-step-id-box class="mt-4 mb-2 p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">Invite email for this step</p>
+              <p class="text-sm font-bold text-gray-900">seo@brandastic.com</p>
+            </div>
+            <button type="button" onclick="navigator.clipboard.writeText('seo@brandastic.com'); this.textContent='Copied'; setTimeout(()=>this.textContent='Copy',2000)" class="text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-full">Copy</button>
+          </div>
+          </div>
+        </div>
+        <div class="space-y-4 mb-8">
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">a</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Log in to Mailchimp</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <a href="https://login.mailchimp.com/" target="_blank" class="text-blue-600 underline">login.mailchimp.com</a> and sign in to your account</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">b</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Go to Account & Billing</p>
+              <p class="text-xs text-gray-500 mt-0.5">Click your <strong>profile icon</strong> or name in the top right corner and select <strong>Account & billing</strong></p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">c</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Navigate to Users</p>
+              <p class="text-xs text-gray-500 mt-0.5">Click the <strong>Settings</strong> drop-down and select <strong>Users</strong></p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">d</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Invite Brandastic</p>
+              <p class="text-xs text-gray-500 mt-0.5">Click <strong>Invite A User</strong> → enter <strong>seo@brandastic.com</strong> in the email field</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">e</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Set User Level</p>
+              <p class="text-xs text-gray-500 mt-0.5">Choose <strong>Manager</strong> or <strong>Admin</strong> so we have the permissions needed to build and send campaigns</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">f</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Send the Invite</p>
+              <p class="text-xs text-gray-500 mt-0.5">Add an optional message, then click <strong>Send Invite</strong> — we'll accept it on our end</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <button onclick="markDone(13)" id="done-13" class="px-6 py-2.5 bg-gray-900 text-white rounded-full text-sm font-semibold hover:bg-gray-700 transition">Mark as Done ✓</button>
+          <div class="flex items-center gap-4">
+            <button onclick="showStep(12)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">← Back</button>
+            <button onclick="showStep(14)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">Next: Merchant Center →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 15: Google Merchant Center -->
+    <div class="step-panel" id="panel-14">
+      <div class="bg-white rounded-2xl border border-gray-200 p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-lime-50 flex items-center justify-center">
+            <span class="text-lg font-bold text-lime-600">15</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">Google Merchant Center</h2>
+            <p class="text-sm text-gray-400">Share product feed access for Shopping & Performance Max</p>
+          <div data-step-id-box class="mt-4 mb-2 p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">Invite email for this step</p>
+              <p class="text-sm font-bold text-gray-900">seo@brandastic.com</p>
+            </div>
+            <button type="button" onclick="navigator.clipboard.writeText('seo@brandastic.com'); this.textContent='Copied'; setTimeout(()=>this.textContent='Copy',2000)" class="text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-full">Copy</button>
+          </div>
+          </div>
+        </div>
+        <div class="space-y-4 mb-8">
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-lime-100 text-lime-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">a</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Visit Google Merchant Center</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <a href="https://merchants.google.com/" target="_blank" class="text-blue-600 underline">merchants.google.com</a> and sign in with the account that owns your product feed</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-lime-100 text-lime-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">b</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Open Account access</p>
+              <p class="text-xs text-gray-500 mt-0.5">Click the <strong>settings gear</strong> → <strong>Account access</strong> (or People & access, depending on your Merchant Center version)</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-lime-100 text-lime-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">c</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Add Brandastic as a user</p>
+              <p class="text-xs text-gray-500 mt-0.5">Click <strong>+ Add user</strong> → enter <strong>seo@brandastic.com</strong> → set access level to <strong>Admin</strong> (preferred) or at least <strong>Standard</strong> → Send invite</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-lime-100 text-lime-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">d</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Link to Google Ads (if not already linked)</p>
+              <p class="text-xs text-gray-500 mt-0.5">In Merchant Center go to <strong>Settings → Linked accounts → Google Ads</strong> and link the Google Ads account you shared with us. Approve any pending link requests on both sides.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-lime-100 text-lime-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">e</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Send us your Merchant Center ID</p>
+              <p class="text-xs text-gray-500 mt-0.5">Copy the <strong>Merchant Center ID</strong> from the top of Merchant Center (or Settings → Account information) and email it to <strong>seo@brandastic.com</strong></p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-lime-100 text-lime-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">f</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Confirm product data sources stay active</p>
+              <p class="text-xs text-gray-500 mt-0.5">Make sure your primary product feed / Content API source is approved and not suspended so we can manage Shopping and Performance Max product ads</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <button onclick="markDone(14)" id="done-14" class="px-6 py-2.5 bg-gray-900 text-white rounded-full text-sm font-semibold hover:bg-gray-700 transition">Mark as Done ✓</button>
+          <div class="flex items-center gap-4">
+            <button onclick="showStep(13)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">← Back</button>
+            <button onclick="showStep(15)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">Next: Local Services Ads →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 16: Google Local Services Ads -->
+    <div class="step-panel" id="panel-15">
+      <div class="bg-white rounded-2xl border border-gray-200 p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+            <span class="text-lg font-bold text-blue-600">16</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">Google Local Services Ads</h2>
+            <p class="text-sm text-gray-400">Share LSA access so we can manage leads, budget, and Google Guaranteed campaigns</p>
+          <div data-step-id-box class="mt-4 mb-2 p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">Invite email for this step</p>
+              <p class="text-sm font-bold text-gray-900">seo@brandastic.com</p>
+            </div>
+            <button type="button" onclick="navigator.clipboard.writeText('seo@brandastic.com'); this.textContent='Copied'; setTimeout(()=>this.textContent='Copy',2000)" class="text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-full">Copy</button>
+          </div>
+          </div>
+        </div>
+        <div class="space-y-4 mb-8">
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">a</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Open Local Services Ads</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <a href="https://ads.google.com/localservices/accountpicker" target="_blank" class="text-blue-600 underline">ads.google.com/localservices</a>, sign in, and select the correct LSA business profile</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">b</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Open Access and security</p>
+              <p class="text-xs text-gray-500 mt-0.5">In the left menu go to <strong>Admin → Access and security</strong> (or open <a href="https://ads.google.com/aw/accountaccess/users" target="_blank" class="text-blue-600 underline">Access and security</a>)</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">c</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Invite Brandastic with Administrative access</p>
+              <p class="text-xs text-gray-500 mt-0.5">Click the <strong>+</strong> button → enter <strong>seo@brandastic.com</strong> → set access level to <strong>Administrative</strong> (needed for budget, bidding, users, and lead management) → <strong>Send invitation</strong></p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">d</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Link our Google Ads manager account (recommended)</p>
+              <p class="text-xs text-gray-500 mt-0.5">LSA manager linking runs through Google Ads. Complete the <button type="button" onclick="showStep(0)" class="text-blue-600 underline font-semibold">Google Ads</button> step and accept any manager-link request from Brandastic under <strong>Admin → Access and security → Managers</strong></p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">e</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Confirm Google Business Profile is connected</p>
+              <p class="text-xs text-gray-500 mt-0.5">Your LSA profile should be tied to the correct GBP location. If you haven't already, also complete the <button type="button" onclick="showStep(8)" class="text-blue-600 underline font-semibold">Yelp / GBP</button> step and add <strong>seo@brandastic.com</strong> as a GBP Manager</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">f</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Send us your LSA account details</p>
+              <p class="text-xs text-gray-500 mt-0.5">Email <strong>seo@brandastic.com</strong> your business name as shown in LSA, service area / locations, and the Customer ID if shown (often the same Google Ads-style ###-###-#### ID). Tell us if Google Guaranteed / Screened is already approved</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-amber-50 border border-amber-100 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">!</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">No LSA account yet?</p>
+              <p class="text-xs text-gray-500 mt-0.5">Reply to your Brandastic contact and we'll help create / claim the Local Services Ads profile. Don't create a second account if one already exists for your business.</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <button onclick="markDone(15)" id="done-15" class="px-6 py-2.5 bg-gray-900 text-white rounded-full text-sm font-semibold hover:bg-gray-700 transition">Mark as Done ✓</button>
+          <div class="flex items-center gap-4">
+            <button onclick="showStep(14)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">← Back</button>
+            <button onclick="showStep(16)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">Next: Amazon →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 17: Amazon Seller Central / Amazon Ads -->
+    <div class="step-panel" id="panel-16">
+      <div class="bg-white rounded-2xl border border-gray-200 p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+            <span class="text-lg font-bold text-amber-700">17</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">Amazon Store</h2>
+            <p class="text-sm text-gray-400">Share Seller Central + Amazon Ads access so our team can help manage your store</p>
+          <div data-step-id-box class="mt-4 mb-2 p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">Invite email for this step</p>
+              <p class="text-sm font-bold text-gray-900">seo@brandastic.com</p>
+            </div>
+            <button type="button" onclick="navigator.clipboard.writeText('seo@brandastic.com'); this.textContent='Copied'; setTimeout(()=>this.textContent='Copy',2000)" class="text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-full">Copy</button>
+          </div>
+          </div>
+        </div>
+        <div class="space-y-4 mb-8">
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">a</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Open Seller Central</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <a href="https://sellercentral.amazon.com/" target="_blank" class="text-blue-600 underline">sellercentral.amazon.com</a> and sign in as the account owner (or someone who can manage users)</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">b</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Invite Brandastic as a user</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <strong>Settings → User Permissions</strong> (or <strong>Account → User Permissions</strong>) → <strong>Add User</strong> → enter <strong>seo@brandastic.com</strong> → send the invite</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">c</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Set the right permissions</p>
+              <p class="text-xs text-gray-500 mt-0.5">After the invite, open <strong>Manage Permissions</strong> for seo@brandastic.com and grant at least:
+                <br>• <strong>Inventory</strong> — View & Edit (listings, A+ / content as needed)
+                <br>• <strong>Advertising</strong> — View & Edit (Sponsored Products / Brands / Display)
+                <br>• <strong>Reports & Analytics</strong> — View (Business Reports, Brand Analytics if available)
+                <br>• <strong>Orders</strong> — View only unless we need more for ops support
+                <br>Do <strong>not</strong> give primary account / banking / tax settings unless your Brandastic contact asks.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">d</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Amazon Ads Console (if separate)</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <a href="https://advertising.amazon.com/" target="_blank" class="text-blue-600 underline">advertising.amazon.com</a> → <strong>Access and settings</strong> (or Administration) → invite <strong>seo@brandastic.com</strong> with campaign manager access on the correct ad profile / marketplace</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">e</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Brand Registry (if you have a brand)</p>
+              <p class="text-xs text-gray-500 mt-0.5">In Brand Registry, add <strong>seo@brandastic.com</strong> with a role that can manage brand content / A+ as needed. Skip if you are not brand-registered yet.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">f</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Send us store details</p>
+              <p class="text-xs text-gray-500 mt-0.5">Email <strong>seo@brandastic.com</strong> your seller name, marketplace(s) (e.g. Amazon.com), main ASINs or storefront URL, and whether you need ads, listing/content, or full store help. Tell us once the invite is sent so we can accept it.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-amber-50 border border-amber-100 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">!</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Security note</p>
+              <p class="text-xs text-gray-500 mt-0.5">Invite a Brandastic user — don’t share your personal Amazon password or primary 2FA device. If Amazon asks for identity verification on the invite, complete it on your side, then tell us.</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <button onclick="markDone(16)" id="done-16" class="px-6 py-2.5 bg-gray-900 text-white rounded-full text-sm font-semibold hover:bg-gray-700 transition">Mark as Done ✓</button>
+          <div class="flex items-center gap-4">
+            <button onclick="showStep(15)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">← Back</button>
+            <button onclick="showStep(17)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">Next: Klaviyo →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 18: Klaviyo -->
+    <div class="step-panel" id="panel-17">
+      <div class="bg-white rounded-2xl border border-gray-200 p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-fuchsia-50 flex items-center justify-center">
+            <span class="text-lg font-bold text-fuchsia-700">18</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">Klaviyo</h2>
+            <p class="text-sm text-gray-400">Share email & SMS access for flows, campaigns, and list growth</p>
+          <div data-step-id-box class="mt-4 mb-2 p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">Invite email for this step</p>
+              <p class="text-sm font-bold text-gray-900">seo@brandastic.com</p>
+            </div>
+            <button type="button" onclick="navigator.clipboard.writeText('seo@brandastic.com'); this.textContent='Copied'; setTimeout(()=>this.textContent='Copy',2000)" class="text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-full">Copy</button>
+          </div>
+          </div>
+        </div>
+        <div class="space-y-4 mb-8">
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-fuchsia-100 text-fuchsia-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">a</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Log in to Klaviyo</p>
+              <p class="text-xs text-gray-500 mt-0.5">Go to <a href="https://www.klaviyo.com/login" target="_blank" class="text-blue-600 underline">klaviyo.com/login</a> and sign in to the account that owns your email/SMS</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-fuchsia-100 text-fuchsia-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">b</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Open Settings → Users</p>
+              <p class="text-xs text-gray-500 mt-0.5">Click your organization name (bottom left) → <strong>Settings</strong> → <strong>Users</strong> (under Account)</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-fuchsia-100 text-fuchsia-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">c</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Add a new user</p>
+              <p class="text-xs text-gray-500 mt-0.5">Click <strong>Add user</strong> (or Invite) → enter <strong>seo@brandastic.com</strong></p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-fuchsia-100 text-fuchsia-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">d</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Set the right role</p>
+              <p class="text-xs text-gray-500 mt-0.5">Choose <strong>Manager</strong> or <strong>Admin</strong> so we can manage campaigns, flows, lists/segments, templates, and reporting. Do not use a view-only role.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-fuchsia-100 text-fuchsia-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">e</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Send the invite</p>
+              <p class="text-xs text-gray-500 mt-0.5">Send the invitation — we’ll accept it on our end. Reply to your Brandastic contact once it’s sent.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-fuchsia-100 text-fuchsia-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">f</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">SMS (if you use it)</p>
+              <p class="text-xs text-gray-500 mt-0.5">If Klaviyo SMS is on, confirm our user can view and edit SMS flows/campaigns. If SMS lives in Attentive, Postscript, or another tool, invite <strong>seo@brandastic.com</strong> there too and tell us which platform.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-amber-50 border border-amber-100 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">!</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Using Mailchimp instead?</p>
+              <p class="text-xs text-gray-500 mt-0.5">Complete the <button type="button" onclick="showStep(13)" class="text-blue-600 underline font-semibold">Mailchimp</button> step instead (or in addition if you use both).</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <button onclick="markDone(17)" id="done-17" class="px-6 py-2.5 bg-gray-900 text-white rounded-full text-sm font-semibold hover:bg-gray-700 transition">Mark as Done ✓</button>
+          <div class="flex gap-4 items-center">
+            <button onclick="showStep(16)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">← Back</button>
+            <button onclick="showStep(18)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">Next: Shopify →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Step 19: Shopify -->
+    <div class="step-panel" id="panel-18">
+      <div class="bg-white rounded-2xl border border-gray-200 p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
+            <span class="text-lg font-bold text-green-700">19</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">Shopify</h2>
+            <p class="text-sm text-gray-400">Preferred: collaborator access code (Partner flow). Email us the 4-digit code + store URL.</p>
+          <div data-step-id-box class="mt-4 mb-2 p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">Invite email for this step</p>
+              <p class="text-sm font-bold text-gray-900">info@brandastic.com</p>
+            </div>
+            <button type="button" onclick="navigator.clipboard.writeText('info@brandastic.com'); this.textContent='Copied'; setTimeout(()=>this.textContent='Copy',2000)" class="text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-full">Copy</button>
+          </div>
+          </div>
+        </div>
+
+        <div class="mb-6 p-4 rounded-xl bg-green-50 border border-green-100">
+          <p class="text-sm font-semibold text-green-900">Brandastic Partner email</p>
+          <p class="text-xs text-green-800/80 mt-1">Use <strong>info@brandastic.com</strong> · Dedicated page: <a href="/shopify" class="underline font-semibold">audit.brandastic.com/shopify</a></p>
+          <p class="text-xs text-green-800/80 mt-2">Shopify docs: collaborator access code under <strong>Settings → Users → Security</strong>. <a href="https://help.shopify.com/en/manual/your-account/users/security/collaborator-accounts" target="_blank" rel="noopener" class="underline">Help article</a></p>
+        </div>
+
+        <div class="space-y-4 mb-8">
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-green-100 text-green-800 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">a</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Open Users in Shopify admin</p>
+              <p class="text-xs text-gray-500 mt-0.5">Sign in as owner (or user manager). Go to <strong>Settings → Users</strong> (sometimes labeled <strong>Users & permissions</strong>).</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-green-100 text-green-800 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">b</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Copy the collaborator access code</p>
+              <p class="text-xs text-gray-500 mt-0.5">Click <strong>Security</strong>. Click the <strong>4-digit code</strong> to copy it. Only Partners with this code can request access. You can <strong>Generate new code</strong> anytime — old codes stop working.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-green-100 text-green-800 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">c</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Send Brandastic the code + store URL</p>
+              <p class="text-xs text-gray-500 mt-0.5">Email <strong>info@brandastic.com</strong> with:
+                <br>• Store URL (e.g. <span class="font-mono">your-store.myshopify.com</span>)
+                <br>• The 4-digit collaborator access code
+                <br>We’ll submit a collaborator request from our Shopify Partner account.
+              </p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-green-100 text-green-800 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">d</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Approve the request in Users</p>
+              <p class="text-xs text-gray-500 mt-0.5">You’ll get an email + Shopify Home notification. Open <strong>Settings → Users</strong>, review the request, set permissions (themes, content, apps, relevant settings), then <strong>Accept</strong>. Reject anytime if needed.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-green-100 text-green-800 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">e</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Security notes</p>
+              <p class="text-xs text-gray-500 mt-0.5">Partners need two-step authentication. Don’t share your owner password. Collaborator access can expire after 90 days inactive — you can reactivate us later.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <span class="w-7 h-7 rounded-full bg-green-100 text-green-800 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">f</span>
+            <div>
+              <p class="text-sm font-medium text-gray-900">Alternate: staff invite</p>
+              <p class="text-xs text-gray-500 mt-0.5"><strong>Settings → Users and permissions → Add staff</strong> → invite <strong>info@brandastic.com</strong> → grant theme/content/apps permissions. Collaborator code flow is still preferred.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <button onclick="markDone(18)" id="done-18" class="px-6 py-2.5 bg-gray-900 text-white rounded-full text-sm font-semibold hover:bg-gray-700 transition">Mark as Done ✓</button>
+          <button onclick="showStep(17)" class="text-sm text-gray-400 hover:text-gray-900 font-medium transition">← Back</button>
+        </div>
+      </div>
+    </div>
+
+<!-- All Done Panel -->
+    <div class="step-panel" id="panel-done">
+      <div class="bg-gray-900 rounded-2xl p-10 text-center">
+        <div class="text-4xl mb-4">✓</div>
+        <h3 class="text-2xl font-bold text-white mb-3">All Done!</h3>
+        <p class="text-gray-400 text-sm max-w-md mx-auto leading-relaxed mb-6">
+          You've shared access across the platforms on this checklist. We'll confirm everything on our end and reach out within 24 hours to get started.
+        </p>
+        <a href="mailto:info@brandastic.com?subject=Onboarding Complete — All Access Shared" class="inline-block bg-white text-gray-900 font-semibold px-8 py-3 rounded-full text-sm hover:bg-gray-100 transition-colors">
+          Let Us Know You're Done
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-gray-200 mt-12">
+    <div class="max-w-4xl mx-auto px-6 py-6 text-center text-xs text-gray-400">
+      © 2026 Brandastic · <a href="https://brandastic.com" target="_blank" class="hover:text-gray-600">brandastic.com</a> · <a href="/" class="hover:text-gray-600">Audit Portal</a>
+    </div>
+  </footer>
+
+  <script>
+    const completed = [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false];
+    let currentStep = 0;
+
+    
+    var currentChannel = null;
+    function backToHome() {
+      currentChannel = null;
+      document.getElementById('onboarding-home').classList.remove('hidden');
+      document.getElementById('onboarding-step-chrome').classList.add('hidden');
+      document.querySelectorAll('.step-panel').forEach(function(p){ p.classList.remove('active'); });
+      document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+      history.replaceState(null, '', '/onboarding');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function openChannel(index) {
+      currentChannel = index;
+      document.getElementById('onboarding-home').classList.add('hidden');
+      document.getElementById('onboarding-step-chrome').classList.remove('hidden');
+      if (typeof showStep === 'function') showStep(index);
+      else {
+        document.querySelectorAll('.step-panel').forEach(function(p,i){ p.classList.toggle('active', i===index); });
+        document.querySelectorAll('.tab-btn').forEach(function(b,i){ b.classList.toggle('active', i===index); });
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showStep(index) {
+      currentStep = index;
+      document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+      document.getElementById('panel-' + index).classList.add('active');
+      document.getElementById('tab-' + index).classList.add('active');
+      // Update URL with channel slug
+      var slugs = ['google-ads','tag-manager','analytics','search-console','meta','instagram','tiktok','linkedin','yelp','website','doordash','instacart','bing','mailchimp','merchant-center','local-services','amazon','klaviyo','shopify'];
+      if (slugs[index]) history.replaceState(null, '', '/onboarding#' + slugs[index]);
+    }
+
+    function markDone(index) {
+      completed[index] = true;
+      const btn = document.getElementById('done-' + index);
+      btn.textContent = 'Done ✓';
+      btn.classList.remove('bg-gray-900', 'hover:bg-gray-700');
+      btn.classList.add('bg-green-600', 'cursor-default');
+      btn.disabled = true;
+
+      // Update tab
+      const tab = document.getElementById('tab-' + index);
+      tab.classList.add('completed');
+      const num = document.getElementById('num-' + index);
+      num.textContent = '✓';
+      num.className = 'w-6 h-6 rounded-full bg-white text-green-600 flex items-center justify-center text-xs font-bold';
+
+      // Update progress
+      const doneCount = completed.filter(Boolean).length;
+      document.getElementById('progress').style.width = (doneCount / 18 * 100) + '%';
+
+      // If all done, show completion
+      if (doneCount === 18) {
+        setTimeout(() => {
+          document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+          document.getElementById('panel-done').classList.add('active');
+        }, 500);
+      } else {
+        // Auto-advance to next incomplete step
+        const next = completed.findIndex((c, i) => !c && i > index);
+        if (next !== -1) setTimeout(() => showStep(next), 600);
+      }
+    }
+
+    
+    function downloadCurrentStepPdf() {
+      var active = document.querySelector('.step-panel.active');
+      if (!active) {
+        window.print();
+        return;
+      }
+      // Optional title for print header via document title
+      var h2 = active.querySelector('h2');
+      var prevTitle = document.title;
+      if (h2) document.title = 'Brandastic Onboarding — ' + h2.textContent.trim();
+      document.body.classList.add('print-current-only');
+      function restore() {
+        document.body.classList.remove('print-current-only');
+        document.title = prevTitle;
+        window.removeEventListener('afterprint', restore);
+      }
+      window.addEventListener('afterprint', restore);
+      setTimeout(function(){
+        window.print();
+        setTimeout(restore, 1000);
+      }, 50);
+    }
+
+    function copyEmail() {
+      navigator.clipboard.writeText('info@brandastic.com').then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+      });
+    }
+  </script>
+
+</body>
+</html>
