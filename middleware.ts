@@ -13,8 +13,9 @@ export function middleware(request: NextRequest) {
 
   if (isOnboardingHome || legacyChannel) {
     const url = request.nextUrl.clone();
-    url.pathname = "/onboarding.html";
-    return NextResponse.rewrite(url);
+    url.pathname = "/";
+    url.search = "";
+    return NextResponse.redirect(url, 301);
   }
 
   if (pathname.startsWith("/onboarding/")) {

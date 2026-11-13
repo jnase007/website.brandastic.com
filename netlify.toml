@@ -3,10 +3,10 @@
 
 [[redirects]]
   from = "/onboarding"
-  to = "/onboarding.html"
-  status = 200
+  to = "/"
+  status = 301
 
 [[redirects]]
   from = "/onboarding/"
-  to = "/onboarding.html"
-  status = 200
+  to = "/"
+  status = 301
