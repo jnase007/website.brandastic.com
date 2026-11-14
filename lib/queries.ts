@@ -1,6 +1,6 @@
 import { getSql, ready } from "@/lib/db";
 import { todayInLA } from "@/lib/text";
-import type { ClientItem, ClientRecord, ClientStats, ItemStatus, LibraryItem, StepBlock } from "@/lib/types";
+import type { ClientItem, ClientRecord, ClientStats, ContentPage, ItemStatus, LibraryItem, PageChoice, StepBlock } from "@/lib/types";
 
 function asSteps(value: unknown): StepBlock[] {
   if (!Array.isArray(value)) return [];
@@ -58,6 +58,7 @@ type ClientRow = {
   due_phase_1: string | null;
   due_phase_2: string | null;
   due_phase_3: string | null;
+  content_doc_url: string | null;
   created_at: Date | string;
 };
 
@@ -71,6 +72,7 @@ function mapClient(row: ClientRow): ClientRecord {
     duePhase1: row.due_phase_1 ? String(row.due_phase_1).slice(0, 10) : null,
     duePhase2: row.due_phase_2 ? String(row.due_phase_2).slice(0, 10) : null,
     duePhase3: row.due_phase_3 ? String(row.due_phase_3).slice(0, 10) : null,
+    contentDocUrl: row.content_doc_url,
     createdAt: new Date(row.created_at).toISOString(),
   };
 }
@@ -133,6 +135,41 @@ export async function getClientBySlug(slug: string) {
   await ready();
   const rows = await getSql()<ClientRow[]>`select * from clients where slug = ${slug}`;
   return rows[0] ? mapClient(rows[0]) : null;
+}
+
+function asChoice(value: string | null): PageChoice | null {
+  return value === "in_doc" || value === "current_site" ? value : null;
+}
+
+export async function listContentPages(clientId: string) {
+  await ready();
+  const rows = await getSql()<
+    {
+      id: string;
+      client_id: string;
+      title: string;
+      sort_order: number;
+      choice: string | null;
+      status: ItemStatus;
+      note: string | null;
+    }[]
+  >`
+    select id, client_id, title, sort_order, choice, status, note
+    from content_pages
+    where client_id = ${clientId}
+    order by sort_order, title
+  `;
+  return rows.map(
+    (row): ContentPage => ({
+      id: row.id,
+      clientId: row.client_id,
+      title: row.title,
+      sortOrder: row.sort_order,
+      choice: asChoice(row.choice),
+      status: row.status,
+      note: row.note,
+    }),
+  );
 }
 
 export async function listClientItems(clientId: string) {

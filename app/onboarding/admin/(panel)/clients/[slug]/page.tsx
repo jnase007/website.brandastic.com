@@ -2,11 +2,12 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PHASES, presetLabel } from "@/lib/brand";
-import { updateClient } from "@/lib/actions";
-import { currentPhase, dueForPhase, getClientBySlug, listClientItems, listLibrary } from "@/lib/queries";
+import { addContentPage, markPageNeedsChanges, markPageReceived, removeContentPage, saveContentDocUrl, updateClient } from "@/lib/actions";
+import { currentPhase, dueForPhase, getClientBySlug, listClientItems, listContentPages, listLibrary } from "@/lib/queries";
 import { formatDate } from "@/lib/text";
 import { AddItemForm } from "@/components/AddItemForm";
 import { CopyButton } from "@/components/CopyButton";
+import { StatusFlag } from "@/components/ClientChecklist";
 import { ItemCard } from "@/components/ItemCard";
 import { PhaseAccordions } from "@/components/PhaseAccordions";
 import { btnGhost, btnPrimary, fieldClass } from "@/components/Shell";
@@ -29,7 +30,12 @@ export default async function AdminClientPage({
   const query = await searchParams;
   const client = await getClientBySlug(slug);
   if (!client) notFound();
-  const [items, library] = await Promise.all([listClientItems(client.id), listLibrary()]);
+  const [items, library, contentPages] = await Promise.all([
+    listClientItems(client.id),
+    listLibrary(),
+    listContentPages(client.id),
+  ]);
+  const hasWebsiteContent = items.some((item) => item.anchor === "website-content");
   const assigned = new Set(items.map((item) => item.libraryItemId));
   const available = library.filter((item) => !assigned.has(item.id));
   const pageUrl = `${await origin()}/onboarding/${client.slug}`;
@@ -113,6 +119,81 @@ export default async function AdminClientPage({
           Save client details
         </button>
       </form>
+
+      {hasWebsiteContent ? (
+        <section className="rounded-2xl border border-gray-200 bg-white p-5 space-y-4">
+          <div>
+            <h2 className="text-lg font-bold">Website pages</h2>
+            <p className="text-sm text-gray-500 mt-1">Add the pages from the confirmed menu. Each page has its own status. The Website Content card is Received only when every page is.</p>
+          </div>
+          <form action={saveContentDocUrl} className="flex flex-col sm:flex-row gap-2">
+            <input type="hidden" name="slug" value={client.slug} />
+            <input
+              name="contentDocUrl"
+              type="url"
+              defaultValue={client.contentDocUrl ?? ""}
+              placeholder="Content doc URL"
+              className={fieldClass}
+            />
+            <button type="submit" className={btnGhost}>
+              Save content doc
+            </button>
+          </form>
+          <form action={addContentPage} className="flex flex-col sm:flex-row gap-2">
+            <input type="hidden" name="slug" value={client.slug} />
+            <input name="title" placeholder="Page name, such as About" className={fieldClass} />
+            <button type="submit" className={btnGhost}>
+              Add page
+            </button>
+          </form>
+          {contentPages.length === 0 ? (
+            <p className="text-sm text-gray-500">No pages yet.</p>
+          ) : (
+            <ul className="space-y-3">
+              {contentPages.map((page) => (
+                <li key={page.id} className="rounded-xl border border-gray-200 p-4 space-y-3">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-sm font-bold">{page.title}</p>
+                    <StatusFlag status={page.status} />
+                  </div>
+                  {page.choice ? (
+                    <p className="text-xs text-gray-500">{page.choice === "in_doc" ? "My content is in the doc" : "Use my current site"}</p>
+                  ) : null}
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                    <form action={markPageReceived}>
+                      <input type="hidden" name="slug" value={client.slug} />
+                      <input type="hidden" name="pageId" value={page.id} />
+                      <button type="submit" className={btnPrimary}>
+                        Received
+                      </button>
+                    </form>
+                    <form action={markPageNeedsChanges} className="flex-1 flex flex-col sm:flex-row gap-2">
+                      <input type="hidden" name="slug" value={client.slug} />
+                      <input type="hidden" name="pageId" value={page.id} />
+                      <input
+                        name="note"
+                        defaultValue={page.status === "needs_changes" ? page.note ?? "" : ""}
+                        placeholder="What should the client change?"
+                        className={fieldClass}
+                      />
+                      <button type="submit" className={btnGhost}>
+                        Needs changes
+                      </button>
+                    </form>
+                  </div>
+                  <form action={removeContentPage}>
+                    <input type="hidden" name="slug" value={client.slug} />
+                    <input type="hidden" name="pageId" value={page.id} />
+                    <button type="submit" className="text-xs font-semibold text-gray-400 hover:text-gray-900">
+                      Remove page
+                    </button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
 
       <AddItemForm slug={client.slug} items={available} />
       <PhaseAccordions current={current} phases={phases} />

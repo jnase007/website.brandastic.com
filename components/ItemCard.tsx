@@ -140,32 +140,36 @@ export function ItemCard({
             </form>
           ) : null}
 
-          <div className="flex flex-col sm:flex-row sm:items-start gap-3">
-            {item.status !== "received" ? (
-              <form action={markReceived}>
+          {item.anchor === "website-content" ? (
+            <p className="text-sm text-gray-500">Set each page to Received or Needs changes in Website pages above. The card is Received only when every page is.</p>
+          ) : (
+            <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+              {item.status !== "received" ? (
+                <form action={markReceived}>
+                  <input type="hidden" name="itemId" value={item.id} />
+                  <button type="submit" className={btnPrimary}>
+                    Received
+                  </button>
+                </form>
+              ) : (
+                <p className="text-sm font-semibold text-emerald-700 py-2">Received</p>
+              )}
+              <form action={markNeedsChanges} className="flex-1 flex flex-col sm:flex-row gap-2">
                 <input type="hidden" name="itemId" value={item.id} />
-                <button type="submit" className={btnPrimary}>
-                  Received
+                <input type="hidden" name="slug" value={slug} />
+                <input type="hidden" name="anchor" value={item.anchor} />
+                <input
+                  name="note"
+                  defaultValue={item.status === "needs_changes" ? item.note ?? "" : ""}
+                  placeholder="What should the client change?"
+                  className={fieldClass}
+                />
+                <button type="submit" className={btnGhost}>
+                  Needs changes
                 </button>
               </form>
-            ) : (
-              <p className="text-sm font-semibold text-emerald-700 py-2">Received</p>
-            )}
-            <form action={markNeedsChanges} className="flex-1 flex flex-col sm:flex-row gap-2">
-              <input type="hidden" name="itemId" value={item.id} />
-              <input type="hidden" name="slug" value={slug} />
-              <input type="hidden" name="anchor" value={item.anchor} />
-              <input
-                name="note"
-                defaultValue={item.status === "needs_changes" ? item.note ?? "" : ""}
-                placeholder="What should the client change?"
-                className={fieldClass}
-              />
-              <button type="submit" className={btnGhost}>
-                Needs changes
-              </button>
-            </form>
-          </div>
+            </div>
+          )}
 
           <ConfirmForm action={removeClientItem} message={`Remove “${item.title}” from this client?`}>
             <input type="hidden" name="slug" value={slug} />

@@ -47,7 +47,20 @@ export type ClientRecord = {
   duePhase1: string | null;
   duePhase2: string | null;
   duePhase3: string | null;
+  contentDocUrl: string | null;
   createdAt: string;
+};
+
+export type PageChoice = "in_doc" | "current_site";
+
+export type ContentPage = {
+  id: string;
+  clientId: string;
+  title: string;
+  sortOrder: number;
+  choice: PageChoice | null;
+  status: ItemStatus;
+  note: string | null;
 };
 
 export type ClientStats = ClientRecord & {

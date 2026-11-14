@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PHASES, helpMailto } from "@/lib/brand";
-import { currentPhase, dueForPhase, getClientBySlug, listClientItems } from "@/lib/queries";
+import { currentPhase, dueForPhase, getClientBySlug, listClientItems, listContentPages } from "@/lib/queries";
 import { formatDate } from "@/lib/text";
 import { ClientChecklist } from "@/components/ClientChecklist";
 import { Shell, btnPrimary } from "@/components/Shell";
@@ -17,7 +17,7 @@ export default async function ClientPage({ params }: { params: Promise<{ slug: s
   const { slug } = await params;
   const client = await getClientBySlug(slug);
   if (!client) notFound();
-  const items = await listClientItems(client.id);
+  const [items, contentPages] = await Promise.all([listClientItems(client.id), listContentPages(client.id)]);
   const received = items.filter((item) => item.status === "received").length;
   const sent = items.filter((item) => item.status === "sent").length;
   const percent = items.length ? Math.round((received / items.length) * 100) : 0;
@@ -95,6 +95,8 @@ export default async function ClientPage({ params }: { params: Promise<{ slug: s
         }))}
         phases={phases}
         current={current}
+        contentDocUrl={client.contentDocUrl}
+        contentPages={contentPages}
       />
     </Shell>
   );

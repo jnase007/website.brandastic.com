@@ -11,11 +11,10 @@ const ANCHORS: Record<string, string> = {
   "shopify collaborator access (shopify only)": "shopify",
   "brand logos": "logos",
   "brand colors or standards": "brand",
-  "homepage content": "homepage",
+  "website content": "website-content",
   "image or video assets": "images",
   "team headshots and bios (optional)": "team",
   "website login (existing wordpress site)": "website-login",
-  "text content for other pages": "page-copy",
   "social account urls": "social",
   "forms confirmation": "forms",
   "product export (e-commerce only)": "products",
@@ -32,8 +31,6 @@ const ANCHORS: Record<string, string> = {
 
 const RESOURCE_TITLES = new Set([
   "menu navigation",
-  "homepage content",
-  "text content for other pages",
   "forms confirmation",
   "redirects",
   "product export (e-commerce only)",

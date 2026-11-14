@@ -70,7 +70,7 @@ Sandy’s answers have been applied throughout this library. Short summary:
 
 # Phase 1 — Design
 
-This phase gathers what we need to start design: the page list, brand files, homepage content, photos, and access to the domain and current site.
+This phase gathers what we need to start design: the page list, website content, brand files, photos, and access to the domain and current site.
 
 ## **Menu Navigation**
 
@@ -339,24 +339,26 @@ Your brand guide, color codes, and fonts are in the Drive folder, or you’ve as
 
 **Default phase:** Phase 1 — Design
 
-## **Homepage Content**
+## **Website Content**
 
 **What we need**
 
-The words for your homepage: a new draft, or confirmation that we should use what’s on your current site.
+Your website text, added to the content doc we created for you. Each tab in the doc is one page of your site.
 
 **Why we need it**
 
-Homepage copy is part of the first design, so we need it (or a clear go-ahead to reuse the current words) before we start.
+We use this text to build each page. If you'd like to keep text from your current site for a page, just tell us.
 
 **Steps**
 
-1. If you have new homepage copy, drop it into the Google Drive folder or Google Doc linked on this card.  
-2. If you want us to use the words already on your current homepage, reply to this card and say so, and send the current site address if we don’t already have it.
+1. Open your content doc using the button below.  
+2. Click the tab for each page.  
+3. Paste or write your text under each section heading.  
+4. Below, mark each page “My content is in the doc” or “Use my current site.”
 
 **Done looks like**
 
-We’ve received your homepage draft in the linked folder or doc, or you’ve confirmed we should use the current site.
+Every page is marked as in the doc or using the current site.
 
 **Presets:** A, B, and C
 
@@ -441,31 +443,7 @@ The brandastic admin user has been created and we’ve received the email, or yo
 
 # Phase 2 — Development
 
-This phase gathers the rest of the page copy, form details, social links, and any store or integration access we need to finish the build.
-
-## **Text Content for Other Pages**
-
-**What we need**
-
-The words for every page besides the homepage. Use the Google Drive folder or Google Doc linked on this card.
-
-**Why we need it**
-
-We can’t finish inner pages until the copy is in, or you’ve confirmed we should reuse the current site.
-
-**Steps**
-
-1. Open the Google Drive folder or Google Doc linked on this card. It will list the pages and where to add the copy.  
-2. For each page, drop the copy into that folder or doc (one Google Doc per page is easiest).  
-3. If we should use the words already on your current site for some or all pages, say which pages.
-
-**Done looks like**
-
-Copy for the remaining pages is in the linked folder or doc, or you’ve told us which current pages to reuse.
-
-**Presets:** A, B, and C
-
-**Default phase:** Phase 2 — Development
+This phase gathers form details, social links, and any store or integration access we need to finish the build.
 
 ## **Social Account URLs**
 

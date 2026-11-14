@@ -94,14 +94,29 @@ async function setup() {
     )
   `;
   await sql`create index if not exists client_items_client_id_idx on client_items (client_id)`;
+  await sql`alter table clients add column if not exists content_doc_url text`;
+  await sql`
+    create table if not exists content_pages (
+      id uuid primary key,
+      client_id uuid not null references clients(id) on delete cascade,
+      title text not null,
+      sort_order integer not null,
+      choice text check (choice in ('in_doc', 'current_site')),
+      status text not null default 'not_started' check (status in ('not_started', 'sent', 'received', 'needs_changes')),
+      sent_at timestamptz,
+      note text,
+      updated_at timestamptz not null default now()
+    )
+  `;
+  await sql`create index if not exists content_pages_client_id_idx on content_pages (client_id)`;
 
   const existing = await sql<{ count: string }[]>`select count(*)::text as count from library_items`;
   if (existing[0]?.count !== "0") return;
 
   const markdown = await readFile(path.join(process.cwd(), "item-library.md"), "utf8");
   const items = parseLibrary(markdown);
-  if (items.length !== 26) {
-    throw new Error(`Expected 26 library items from item-library.md, parsed ${items.length}`);
+  if (items.length !== 25) {
+    throw new Error(`Expected 25 library items from item-library.md, parsed ${items.length}`);
   }
 
   await sql.begin(async (tx) => {

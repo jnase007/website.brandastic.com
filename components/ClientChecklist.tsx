@@ -2,8 +2,8 @@
 
 import { useLayoutEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { markSent } from "@/lib/actions";
-import type { ItemStatus, StepBlock } from "@/lib/types";
+import { chooseContentPage, markSent } from "@/lib/actions";
+import type { ContentPage, ItemStatus, StepBlock } from "@/lib/types";
 import { CopyButton } from "@/components/CopyButton";
 import { GuideSteps, Paragraphs } from "@/components/RichText";
 import { btnGhost, btnPrimary } from "@/components/Shell";
@@ -37,7 +37,7 @@ const FLAG: Record<ItemStatus, { label: string; className: string; check?: boole
   received: { label: "Received", className: "bg-emerald-50 text-emerald-700", check: true },
 };
 
-function StatusFlag({ status }: { status: ItemStatus }) {
+export function StatusFlag({ status }: { status: ItemStatus }) {
   const flag = FLAG[status];
   return (
     <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ${flag.className}`}>
@@ -89,10 +89,14 @@ export function ClientChecklist({
   items,
   phases,
   current,
+  contentDocUrl,
+  contentPages,
 }: {
   items: ChecklistItem[];
   phases: ChecklistPhase[];
   current: number;
+  contentDocUrl: string | null;
+  contentPages: ContentPage[];
 }) {
   const numbered = items.map((item, index) => ({
     ...item,
@@ -133,6 +137,8 @@ export function ClientChecklist({
         item={active}
         previous={previous}
         next={next}
+        contentDocUrl={contentDocUrl}
+        contentPages={contentPages}
         onBack={() => {
           const url = window.location.pathname + window.location.search;
           window.history.pushState(null, "", url);
@@ -209,18 +215,96 @@ export function ClientChecklist({
   );
 }
 
+function WebsitePages({ contentDocUrl, pages }: { contentDocUrl: string | null; pages: ContentPage[] }) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+
+  return (
+    <section className="space-y-3">
+      {contentDocUrl ? (
+        <a href={contentDocUrl} target="_blank" rel="noopener noreferrer" className={btnPrimary}>
+          Open your content doc
+        </a>
+      ) : (
+        <p className="text-sm text-gray-500">Brandastic will add the content doc link here.</p>
+      )}
+      {pages.length === 0 ? (
+        <p className="text-sm text-gray-500">Your pages will show here once the menu is confirmed.</p>
+      ) : (
+        <ul className="space-y-3">
+          {pages.map((page) => (
+            <li key={page.id} className="rounded-xl border border-gray-200 p-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <p className="text-sm font-bold text-gray-900">{page.title}</p>
+                <StatusFlag status={page.status} />
+              </div>
+              {page.status === "needs_changes" && page.note ? (
+                <p className="mt-2 text-sm text-gray-700 whitespace-pre-wrap">{page.note}</p>
+              ) : null}
+              {page.status === "received" ? (
+                <p className="mt-3 text-sm text-gray-600">{page.choice ? PAGE_CHOICE[page.choice] : "Received"}</p>
+              ) : (
+                <form
+                  className="mt-3 flex flex-wrap gap-2"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    const data = new FormData(event.currentTarget, (event.nativeEvent as SubmitEvent).submitter);
+                    startTransition(async () => {
+                      await chooseContentPage(data);
+                      window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#website-content`);
+                      router.refresh();
+                    });
+                  }}
+                >
+                  <input type="hidden" name="pageId" value={page.id} />
+                  {(["in_doc", "current_site"] as const).map((choice) => (
+                    <button
+                      key={choice}
+                      type="submit"
+                      name="choice"
+                      value={choice}
+                      disabled={pending}
+                      className={
+                        page.choice === choice
+                          ? "text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-full"
+                          : "text-xs font-semibold border border-gray-300 text-gray-700 px-3 py-1.5 rounded-full hover:border-gray-900"
+                      }
+                    >
+                      {PAGE_CHOICE[choice]}
+                    </button>
+                  ))}
+                </form>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+const PAGE_CHOICE = {
+  in_doc: "My content is in the doc",
+  current_site: "Use my current site",
+} as const;
+
 function ItemDetail({
   item,
   previous,
   next,
+  contentDocUrl,
+  contentPages,
   onBack,
 }: {
   item: ChecklistItem & { number: string };
   previous: (ChecklistItem & { number: string }) | null;
   next: (ChecklistItem & { number: string }) | null;
+  contentDocUrl: string | null;
+  contentPages: ContentPage[];
   onBack: () => void;
 }) {
-  const showSend = item.status === "not_started" || item.status === "needs_changes";
+  const isWebsiteContent = item.anchor === "website-content";
+  const showSend = !isWebsiteContent && (item.status === "not_started" || item.status === "needs_changes");
   const copies = copyRows(item);
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -292,13 +376,14 @@ function ItemDetail({
               <GuideSteps steps={item.steps} />
             </section>
           ) : null}
+          {isWebsiteContent ? <WebsitePages contentDocUrl={contentDocUrl} pages={contentPages} /> : null}
           <section>
             <p className="text-[10px] text-gray-400 uppercase font-semibold tracking-wide mb-1.5">Done looks like</p>
             <Paragraphs text={item.doneLooksLike} />
           </section>
         </div>
 
-        {item.status === "needs_changes" && item.note ? (
+        {!isWebsiteContent && item.status === "needs_changes" && item.note ? (
           <div className="mt-5 p-4 bg-orange-50 border border-orange-100 rounded-xl">
             <p className="text-[10px] uppercase font-semibold tracking-wide text-orange-800">From Sandy</p>
             <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap">{item.note}</p>
