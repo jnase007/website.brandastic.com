@@ -24,7 +24,7 @@ export default async function AdminClientPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ created?: string; error?: string }>;
+  searchParams: Promise<{ created?: string; error?: string; tabs?: string }>;
 }) {
   const { slug } = await params;
   const query = await searchParams;
@@ -90,6 +90,11 @@ export default async function AdminClientPage({
       )}
 
       {query.error ? <p className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-800">{query.error}</p> : null}
+      {query.tabs ? (
+        <p className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          Pulled {query.tabs} {query.tabs === "1" ? "page" : "pages"} from the document tabs.
+        </p>
+      ) : null}
 
       <form action={updateClient} className="rounded-2xl border border-gray-200 bg-white p-5 space-y-3">
         <input type="hidden" name="slug" value={client.slug} />
@@ -124,7 +129,7 @@ export default async function AdminClientPage({
         <section className="rounded-2xl border border-gray-200 bg-white p-5 space-y-4">
           <div>
             <h2 className="text-lg font-bold">Website pages</h2>
-            <p className="text-sm text-gray-500 mt-1">Add the pages from the confirmed menu. Each page has its own status. The Website Content card is Received only when every page is.</p>
+            <p className="text-sm text-gray-500 mt-1">Saving the content doc adds a page for each tab. Share the doc so anyone with the link can view it. The Website Content card is Received only when every page is.</p>
           </div>
           <form action={saveContentDocUrl} className="flex flex-col sm:flex-row gap-2">
             <input type="hidden" name="slug" value={client.slug} />
@@ -136,7 +141,7 @@ export default async function AdminClientPage({
               className={fieldClass}
             />
             <button type="submit" className={btnGhost}>
-              Save content doc
+              Save and pull pages
             </button>
           </form>
           <form action={addContentPage} className="flex flex-col sm:flex-row gap-2">

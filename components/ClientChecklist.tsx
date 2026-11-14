@@ -229,7 +229,7 @@ function WebsitePages({ contentDocUrl, pages }: { contentDocUrl: string | null; 
         <p className="text-sm text-gray-500">Brandastic will add the content doc link here.</p>
       )}
       {pages.length === 0 ? (
-        <p className="text-sm text-gray-500">Your pages will show here once the menu is confirmed.</p>
+        <p className="text-sm text-gray-500">Your pages will show here once the content doc tabs are added.</p>
       ) : (
         <ul className="space-y-3">
           {pages.map((page) => (

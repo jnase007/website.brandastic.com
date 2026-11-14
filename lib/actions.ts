@@ -7,6 +7,7 @@ import { clearAdminCookie, passwordsMatch, requireAdmin, setAdminCookie } from "
 import { getSql, ready } from "@/lib/db";
 import { RESERVED_SLUGS } from "@/lib/legacy-channels";
 import { getLibraryItem, listLibrary } from "@/lib/queries";
+import { listGoogleDocTabs } from "@/lib/google-doc-tabs";
 import { cleanHttpUrl, isDateInput, makeClientSlug, slugify, textToSteps } from "@/lib/text";
 import type { ItemStatus, LibraryItem } from "@/lib/types";
 
@@ -387,15 +388,74 @@ function revalidateClient(slug: string) {
   revalidatePath(`/onboarding/${slug}`);
 }
 
+async function syncDocTabs(clientId: string, docUrl: string) {
+  const tabs = await listGoogleDocTabs(docUrl);
+  const sql = getSql();
+  const existing = await sql<{ id: string; title: string; tab_id: string | null; status: ItemStatus; choice: string | null }[]>`
+    select id, title, tab_id, status, choice from content_pages where client_id = ${clientId}
+  `;
+  const byTab = new Map(existing.filter((page) => page.tab_id).map((page) => [page.tab_id as string, page]));
+  const used = new Set<string>();
+  let order = 1;
+
+  for (const tab of tabs) {
+    const named = existing.find((page) => !page.tab_id && !used.has(page.id) && page.title === tab.title);
+    const match = byTab.get(tab.id) ?? named;
+    if (match) {
+      used.add(match.id);
+      await sql`
+        update content_pages
+        set title = ${tab.title}, tab_id = ${tab.id}, sort_order = ${order}, updated_at = now()
+        where id = ${match.id}
+      `;
+    } else {
+      await sql`
+        insert into content_pages (id, client_id, title, sort_order, tab_id)
+        values (${randomUUID()}, ${clientId}, ${tab.title}, ${order}, ${tab.id})
+      `;
+    }
+    order += 1;
+  }
+
+  for (const page of existing) {
+    if (used.has(page.id)) continue;
+    if (page.tab_id && page.status === "not_started" && !page.choice) {
+      await sql`delete from content_pages where id = ${page.id}`;
+      continue;
+    }
+    await sql`update content_pages set sort_order = ${order}, updated_at = now() where id = ${page.id}`;
+    order += 1;
+  }
+
+  await syncWebsiteContent(clientId);
+  return tabs.length;
+}
+
 export async function saveContentDocUrl(formData: FormData) {
   await requireAdmin();
   await ready();
   const slug = String(formData.get("slug") ?? "");
   const link = cleanHttpUrl(String(formData.get("contentDocUrl") ?? ""));
   if (link.error) redirect(`/onboarding/admin/clients/${slug}?error=${encodeURIComponent(`Content doc: ${link.error}`)}`);
-  await getSql()`update clients set content_doc_url = ${link.url} where slug = ${slug}`;
+  const sql = getSql();
+  const clients = await sql<{ id: string }[]>`select id from clients where slug = ${slug}`;
+  const client = clients[0];
+  if (!client) redirect("/onboarding/admin");
+  await sql`update clients set content_doc_url = ${link.url} where slug = ${slug}`;
+  if (!link.url) {
+    revalidateClient(slug);
+    redirect(`/onboarding/admin/clients/${slug}`);
+  }
+  let tabCount = 0;
+  try {
+    tabCount = await syncDocTabs(client.id, link.url);
+  } catch (error) {
+    revalidateClient(slug);
+    const message = error instanceof Error ? error.message : "Could not read the document tabs.";
+    redirect(`/onboarding/admin/clients/${slug}?error=${encodeURIComponent(message)}`);
+  }
   revalidateClient(slug);
-  redirect(`/onboarding/admin/clients/${slug}`);
+  redirect(`/onboarding/admin/clients/${slug}?tabs=${tabCount}`);
 }
 
 export async function addContentPage(formData: FormData) {
