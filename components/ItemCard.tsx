@@ -1,6 +1,7 @@
 import { markNeedsChanges, markReceived, markSent, removeClientItem, updateResourceUrl } from "@/lib/actions";
 import { formatTimestamp } from "@/lib/text";
 import type { ClientItem } from "@/lib/types";
+import { AnswerSummary, FileSummary } from "@/components/AnswerSummary";
 import { ConfirmForm } from "@/components/ConfirmForm";
 import { CopyButton } from "@/components/CopyButton";
 import { Paragraphs, Steps } from "@/components/RichText";
@@ -109,7 +110,7 @@ export function ItemCard({
       ) : null}
 
       {showSend ? (
-        <form action={markSent} className="mt-6">
+        <form action={async (data) => { await markSent(data); }} className="mt-6">
           <input type="hidden" name="itemId" value={item.id} />
           <button type="submit" className={btnPrimary}>
             I sent it
@@ -140,6 +141,10 @@ export function ItemCard({
             </form>
           ) : null}
 
+          {mode === "admin" && item.cardType === "form" && item.formSchema ? (
+            <AnswerSummary schema={item.formSchema} answers={item.answers} />
+          ) : null}
+          {mode === "admin" && item.cardType === "file" ? <FileSummary files={item.files} /> : null}
           {item.anchor === "website-content" ? (
             <p className="text-sm text-gray-500">Set each page to Received or Needs changes in Website pages above. The card is Received only when every page is.</p>
           ) : (

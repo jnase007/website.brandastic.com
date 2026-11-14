@@ -109,6 +109,24 @@ async function setup() {
     )
   `;
   await sql`create index if not exists content_pages_client_id_idx on content_pages (client_id)`;
+  await sql`alter table library_items add column if not exists card_type text not null default 'sent'`;
+  await sql`alter table library_items add column if not exists form_schema jsonb`;
+  await sql`alter table library_items add column if not exists file_folder text`;
+  await sql`alter table client_items add column if not exists card_type text not null default 'sent'`;
+  await sql`alter table client_items add column if not exists form_schema jsonb`;
+  await sql`alter table client_items add column if not exists file_folder text`;
+  await sql`alter table client_items add column if not exists answers jsonb not null default '{}'::jsonb`;
+  await sql`
+    create table if not exists client_files (
+      id uuid primary key,
+      client_item_id uuid not null references client_items(id) on delete cascade,
+      filename text not null,
+      mime text not null,
+      bytes bytea not null,
+      created_at timestamptz not null default now()
+    )
+  `;
+  await sql`create index if not exists client_files_item_idx on client_files (client_item_id)`;
   await sql`alter table content_pages add column if not exists tab_id text`;
   await sql`create unique index if not exists content_pages_client_tab_idx on content_pages (client_id, tab_id)`;
 
@@ -117,8 +135,8 @@ async function setup() {
 
   const markdown = await readFile(path.join(process.cwd(), "item-library.md"), "utf8");
   const items = parseLibrary(markdown);
-  if (items.length !== 25) {
-    throw new Error(`Expected 25 library items from item-library.md, parsed ${items.length}`);
+  if (items.length !== 24) {
+    throw new Error(`Expected 24 library items from item-library.md, parsed ${items.length}`);
   }
 
   await sql.begin(async (tx) => {
@@ -126,7 +144,7 @@ async function setup() {
       await tx`
         insert into library_items (
           id, title, what_we_need, why, steps, done_looks_like, phase, presets,
-          off_by_default, allows_resource_link, sort_order
+          off_by_default, allows_resource_link, sort_order, card_type, form_schema, file_folder
         ) values (
           ${item.id},
           ${item.title},
@@ -138,7 +156,10 @@ async function setup() {
           ${tx.array(item.presets)},
           ${item.offByDefault},
           ${item.allowsResourceLink},
-          ${item.sortOrder}
+          ${item.sortOrder},
+          ${item.cardType},
+          ${item.formSchema ? tx.json(item.formSchema) : null},
+          ${item.fileFolder}
         )
         on conflict (id) do nothing
       `;

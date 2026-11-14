@@ -7,6 +7,8 @@ import { clearAdminCookie, passwordsMatch, requireAdmin, setAdminCookie } from "
 import { getSql, ready } from "@/lib/db";
 import { RESERVED_SLUGS } from "@/lib/legacy-channels";
 import { getLibraryItem, listLibrary } from "@/lib/queries";
+import { schemaForPreset } from "@/lib/card-forms";
+import { validateAnswers } from "@/lib/form-answers";
 import { listGoogleDocTabs } from "@/lib/google-doc-tabs";
 import { cleanHttpUrl, isDateInput, makeClientSlug, slugify, textToSteps } from "@/lib/text";
 import type { ItemStatus, LibraryItem } from "@/lib/types";
@@ -30,7 +32,7 @@ async function uniqueSlug(name: string) {
   throw new Error("Could not make a unique client link");
 }
 
-function snapshot(item: LibraryItem, clientId: string, resourceUrl: string | null) {
+function snapshot(item: LibraryItem, clientId: string, resourceUrl: string | null, preset: "A" | "B" | "C") {
   return {
     id: randomUUID(),
     clientId,
@@ -45,6 +47,9 @@ function snapshot(item: LibraryItem, clientId: string, resourceUrl: string | nul
     sortOrder: item.sortOrder,
     allowsResourceLink: item.allowsResourceLink,
     resourceUrl: item.allowsResourceLink ? resourceUrl : null,
+    cardType: item.cardType,
+    formSchema: schemaForPreset(item.formSchema, preset),
+    fileFolder: item.fileFolder,
   };
 }
 
@@ -105,15 +110,16 @@ export async function createClient(_prev: ActionState, formData: FormData): Prom
       const link = item.allowsResourceLink
         ? cleanHttpUrl(String(formData.get(`resource_${item.id}`) ?? "")).url
         : null;
-      const row = snapshot(item, clientId, link);
+      const row = snapshot(item, clientId, link, preset);
       await tx`
         insert into client_items (
           id, client_id, library_item_id, anchor, title, what_we_need, why, steps, done_looks_like,
-          phase, sort_order, allows_resource_link, resource_url
+          phase, sort_order, allows_resource_link, resource_url, card_type, form_schema, file_folder
         ) values (
           ${row.id}, ${row.clientId}, ${row.libraryItemId}, ${row.anchor}, ${row.title}, ${row.whatWeNeed},
           ${row.why}, ${tx.json(row.steps)}, ${row.doneLooksLike}, ${row.phase}, ${row.sortOrder},
-          ${row.allowsResourceLink}, ${row.resourceUrl}
+          ${row.allowsResourceLink}, ${row.resourceUrl}, ${row.cardType},
+          ${row.formSchema ? tx.json(row.formSchema) : null}, ${row.fileFolder}
         )
       `;
     }
@@ -156,22 +162,23 @@ export async function addClientItem(formData: FormData) {
   if (link.error) redirect(`/onboarding/admin/clients/${slug}?error=${encodeURIComponent(link.error)}`);
 
   const sql = getSql();
-  const clients = await sql<{ id: string }[]>`select id from clients where slug = ${slug}`;
+  const clients = await sql<{ id: string; preset: "A" | "B" | "C" }[]>`select id, preset from clients where slug = ${slug}`;
   const client = clients[0];
   if (!client) redirect("/onboarding/admin");
   const existing = await sql`select 1 from client_items where client_id = ${client.id} and anchor = ${item.id}`;
   if (existing.length) {
     redirect(`/onboarding/admin/clients/${slug}?error=${encodeURIComponent("That item is already on this client.")}`);
   }
-  const row = snapshot(item, client.id, item.allowsResourceLink ? link.url : null);
+  const row = snapshot(item, client.id, item.allowsResourceLink ? link.url : null, client.preset);
   await sql`
     insert into client_items (
       id, client_id, library_item_id, anchor, title, what_we_need, why, steps, done_looks_like,
-      phase, sort_order, allows_resource_link, resource_url
+      phase, sort_order, allows_resource_link, resource_url, card_type, form_schema, file_folder
     ) values (
       ${row.id}, ${row.clientId}, ${row.libraryItemId}, ${row.anchor}, ${row.title}, ${row.whatWeNeed},
       ${row.why}, ${sql.json(row.steps)}, ${row.doneLooksLike}, ${row.phase}, ${row.sortOrder},
-      ${row.allowsResourceLink}, ${row.resourceUrl}
+      ${row.allowsResourceLink}, ${row.resourceUrl}, ${row.cardType},
+      ${row.formSchema ? sql.json(row.formSchema) : null}, ${row.fileFolder}
     )
   `;
   revalidatePath(`/onboarding/admin/clients/${slug}`);
@@ -227,16 +234,89 @@ async function clientSlugForItem(itemId: string) {
 export async function markSent(formData: FormData) {
   await ready();
   const itemId = String(formData.get("itemId") ?? "");
-  await getSql()`
+  const sql = getSql();
+  const rows = await sql<{ card_type: string; form_schema: unknown; answers: unknown; files: number }[]>`
+    select i.card_type, i.form_schema, i.answers, (select count(*)::int from client_files f where f.client_item_id = i.id) as files
+    from client_items i
+    where i.id = ${itemId} and i.status in ('not_started', 'needs_changes')
+  `;
+  const item = rows[0];
+  if (!item) return { error: "This item can no longer be sent." };
+  if (item.card_type === "form" && item.form_schema && typeof item.form_schema === "object") {
+    const error = validateAnswers(item.form_schema as import("@/lib/types").FormSchema, (item.answers ?? {}) as import("@/lib/types").Answers);
+    if (error) return { error };
+  }
+  if (item.card_type === "file" && Number(item.files) < 1) return { error: "Upload at least one file first." };
+  await sql`
     update client_items
     set status = 'sent', sent_at = now(), updated_at = now()
     where id = ${itemId} and status in ('not_started', 'needs_changes')
   `;
   const slug = await clientSlugForItem(itemId);
-  if (!slug) return;
+  if (!slug) return {};
   revalidatePath(`/onboarding/${slug}`);
   revalidatePath(`/onboarding/admin/clients/${slug}`);
   revalidatePath("/onboarding/admin");
+  return {};
+}
+
+export async function saveItemAnswers(itemId: string, answers: import("@/lib/types").Answers) {
+  await ready();
+  const sql = getSql();
+  const rows = await sql<{ slug: string }[]>`
+    update client_items i
+    set answers = ${sql.json(JSON.parse(JSON.stringify(answers)))}, updated_at = now()
+    from clients c
+    where i.id = ${itemId} and i.client_id = c.id and i.card_type = 'form' and i.status in ('not_started', 'needs_changes')
+    returning c.slug
+  `;
+  const slug = rows[0]?.slug;
+  if (slug) revalidatePath(`/onboarding/admin/clients/${slug}`);
+}
+
+const MAX_FILE_BYTES = 8 * 1024 * 1024;
+
+export async function uploadItemFile(formData: FormData) {
+  await ready();
+  const itemId = String(formData.get("itemId") ?? "");
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) return { error: "Choose a file to upload." };
+  if (file.size > MAX_FILE_BYTES) return { error: "Each file needs to be 8 MB or smaller." };
+  const sql = getSql();
+  const items = await sql<{ id: string }[]>`
+    select id from client_items where id = ${itemId} and card_type = 'file' and status in ('not_started', 'needs_changes')
+  `;
+  if (!items[0]) return { error: "This item can no longer take files." };
+  const bytes = Buffer.from(await file.arrayBuffer());
+  await sql`
+    insert into client_files (id, client_item_id, filename, mime, bytes)
+    values (${randomUUID()}, ${itemId}, ${file.name.slice(0, 180)}, ${file.type || "application/octet-stream"}, ${bytes})
+  `;
+  const slug = await clientSlugForItem(itemId);
+  if (slug) {
+    revalidatePath(`/onboarding/${slug}`);
+    revalidatePath(`/onboarding/admin/clients/${slug}`);
+  }
+  return {};
+}
+
+export async function removeItemFile(formData: FormData) {
+  await ready();
+  const fileId = String(formData.get("fileId") ?? "");
+  const sql = getSql();
+  const rows = await sql<{ client_item_id: string }[]>`
+    delete from client_files f
+    using client_items i
+    where f.id = ${fileId} and f.client_item_id = i.id and i.status in ('not_started', 'needs_changes')
+    returning f.client_item_id
+  `;
+  const itemId = rows[0]?.client_item_id;
+  if (!itemId) return;
+  const slug = await clientSlugForItem(itemId);
+  if (slug) {
+    revalidatePath(`/onboarding/${slug}`);
+    revalidatePath(`/onboarding/admin/clients/${slug}`);
+  }
 }
 
 export async function markReceived(formData: FormData) {

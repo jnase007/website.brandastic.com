@@ -1,5 +1,6 @@
+import { formSchemaFor } from "@/lib/card-forms";
 import { allowsResourceLink, anchorForTitle } from "@/lib/text";
-import type { LibraryItem, StepBlock } from "@/lib/types";
+import type { CardType, LibraryItem, StepBlock } from "@/lib/types";
 
 function unescapeMarkdown(value: string) {
   return value.replace(/\\(.)/g, "$1").trim();
@@ -16,7 +17,7 @@ function section(body: string, label: string, nextLabels: string[]) {
       end = i;
       break;
     }
-    if (trimmed.startsWith("**Presets") || trimmed.startsWith("**Default phase")) {
+    if (trimmed.startsWith("**Presets") || trimmed.startsWith("**Default phase") || trimmed.startsWith("**Card type") || trimmed.startsWith("**File folder")) {
       end = i;
       break;
     }
@@ -83,6 +84,14 @@ function parsePresets(body: string) {
   return { presets, offByDefault: /off by default/i.test(line) };
 }
 
+function parseCard(body: string): { cardType: CardType; fileFolder: string | null } {
+  const line = body.match(/\*\*Card type:\*\*\s*(.+)/i)?.[1]?.trim().toLowerCase() ?? "";
+  const folder = body.match(/\*\*File folder:\*\*\s*(.+)/)?.[1]?.trim() || null;
+  if (line.startsWith("form")) return { cardType: "form", fileFolder: null };
+  if (line.startsWith("file")) return { cardType: "file", fileFolder: folder };
+  return { cardType: "sent", fileFolder: null };
+}
+
 export function parseLibrary(markdown: string): LibraryItem[] {
   const source = markdown.replace(/\r\n/g, "\n");
   const appliedAt = source.search(/^# Applied\s*$/m);
@@ -102,15 +111,17 @@ export function parseLibrary(markdown: string): LibraryItem[] {
     const steps = parseSteps(section(body, "Steps", ["Done looks like"]));
     const doneLooksLike = section(body, "Done looks like", []);
     const { presets, offByDefault } = parsePresets(body);
+    const { cardType, fileFolder } = parseCard(body);
     const phaseMatch = body.match(/\*\*Default phase:\*\*\s*Phase\s+([123])/);
     const phase = Number(phaseMatch?.[1] ?? 0) as 1 | 2 | 3;
+    const id = anchorForTitle(title);
 
     if (!whatWeNeed || !why || !doneLooksLike || !presets.length || ![1, 2, 3].includes(phase)) {
       throw new Error(`Could not parse library item "${title}"`);
     }
 
     items.push({
-      id: anchorForTitle(title),
+      id,
       title,
       whatWeNeed,
       why,
@@ -121,6 +132,9 @@ export function parseLibrary(markdown: string): LibraryItem[] {
       offByDefault,
       allowsResourceLink: allowsResourceLink(title),
       sortOrder: items.length + 1,
+      cardType,
+      formSchema: formSchemaFor(id, cardType),
+      fileFolder,
     });
   });
 

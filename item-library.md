@@ -40,7 +40,7 @@ Each item lists which presets include it by default. You can still add or remove
 
 Google Tag Manager and Google Search Console are included as selectable options in Phase 1, alongside Analytics. reCAPTCHA remains a Phase 2 option for WordPress presets (A and B).
 
-For Menu Navigation, page copy, Forms, Redirects, and Products, you can add a Google Drive folder or Google Doc link on the card. Clients use that link to review or drop in the content.
+For Menu Navigation and Products, you can add a Google Drive folder or Google Doc link on the card. Clients use that link to review or drop in the content.
 
 ## **Decisions**
 
@@ -260,6 +260,8 @@ We need to know where the current site lives so we can plan the build and the mo
 
 You’ve told us the current host, and, if the site is on Kinsta, seo@brandastic.com has been invited.
 
+**Card type:** I sent it
+
 **Presets:** A and B
 
 **Default phase:** Phase 1 — Design
@@ -285,6 +287,8 @@ This is how we work in your Shopify store to build and launch the new site, with
 **Done looks like**
 
 You’ve sent the myshopify address and the 4-digit code. After we send the request, please accept it in Shopify.
+
+**Card type:** I sent it
 
 **Presets:** C
 
@@ -315,25 +319,51 @@ The logo files are in your Drive folder, or you’ve told us you only have a low
 
 **Default phase:** Phase 1 — Design
 
+## **Brand Style**
+
+**What we need**
+
+Three websites you like and why, three words that describe your brand, and anything you want us to avoid.
+
+**Why we need it**
+
+These notes keep the design pointed at your taste before we start layout.
+
+**Steps**
+
+1. Add three sites you like, and a short reason for each.  
+2. Enter three words that describe your brand.  
+3. Tell us anything to avoid, if you have it.
+
+**Done looks like**
+
+All three sites, the three words, and any notes to avoid are filled in.
+
+**Card type:** Form
+
+**Presets:** A, B, and C
+
+**Default phase:** Phase 1 — Design
+
 ## **Brand Colors or Standards**
 
 **What we need**
 
-Your brand colors (the hex codes, like \#1A2B3C), fonts, and any brand guide you already have. If you don’t have these, we’ll choose colors from your logo and confirm them with you.
+Your brand colors. Add up to five colors, or tell us to use the colors from your logo.
 
 **Why we need it**
 
-Settling colors and fonts early keeps the design consistent and avoids rework later.
+Settling colors early keeps the design consistent and avoids rework later.
 
 **Steps**
 
-1. If you have a brand guide (a PDF or a page that lists colors and fonts), upload it to your Drive folder or send the link.  
-2. If you don’t have a guide, list your main colors as hex codes if you know them, and name the fonts you use (for example, in your logo or on letterhead).  
-3. If you have none of the above, just tell us. We’ll suggest colors based on your logo and confirm them with you.
+1. Add between one and five brand colors below, or check “Use our logo colors.”
 
 **Done looks like**
 
-Your brand guide, color codes, and fonts are in the Drive folder, or you’ve asked us to suggest colors from the logo.
+You’ve added your colors, or checked that we should use the logo colors.
+
+**Card type:** Form
 
 **Presets:** A, B, and C
 
@@ -389,26 +419,28 @@ Your photos and videos are in the Drive folder, or you’ve asked us to use stoc
 
 **Default phase:** Phase 1 — Design
 
-## **Team Headshots and Bios (optional)**
+## **Team Headshots**
 
 **What we need**
 
-A photo and a short bio for each person who will appear on a Team page. You can skip this if the site won’t have a Team page.
+A headshot for each person on the Team tab of your content doc. Name each file to match that person’s name.
 
 **Why we need it**
 
-Headshots and bios are hard to collect later, and the Team page can’t be finished without them.
+The Team page needs a clear photo for each person, and matching file names keeps them paired with the right name.
 
 **Steps**
 
-1. Make a list of the people who should appear on the Team page, with each person’s name and job title.  
-2. For each person, add a short bio (a few sentences is enough) in a Google Doc, and share it with seo@brandastic.com or upload it to your Drive folder.  
-3. Upload a clear, well-lit headshot for each person. A simple photo from the shoulders up works well. Send the original file, not a screenshot from social media if you can avoid it.  
-4. If these already exist on your current site and we should reuse them, just tell us.
+1. Upload each headshot below. The files go in the 04 Team folder.  
+2. Name each file to match a name in the Team tab of your content doc.
 
 **Done looks like**
 
-Headshots and bios are in the Drive folder, you’ve told us to reuse the current Team page, or you’ve confirmed the site won’t have a Team page.
+A headshot is uploaded for each person, and each file name matches a name in the Team tab.
+
+**Card type:** File
+
+**File folder:** 04 Team
 
 **Presets: Off by default in A, B, and C. Add this item when the sitemap includes a Team page.**
 
@@ -443,13 +475,13 @@ The brandastic admin user has been created and we’ve received the email, or yo
 
 # Phase 2 — Development
 
-This phase gathers form details, social links, and any store or integration access we need to finish the build.
+This phase gathers form email settings, social links, and any store or integration access we need to finish the build.
 
-## **Social Account URLs**
+## **Social Accounts**
 
 **What we need**
 
-The web addresses of the social profiles you want linked from the site (for example, Facebook, Instagram, LinkedIn, YouTube, or X).
+The web address for each social profile you want linked from the site. Mark N/A for any you don’t use.
 
 **Why we need it**
 
@@ -457,38 +489,39 @@ These links usually go in the header, footer, or contact area, and we want them 
 
 **Steps**
 
-1. Open each social profile you want on the site and copy the full web address from your browser (for example, https\://www\.instagram.com/yourcompany), not just the @name.  
-2. Send us the list, or add it to a doc in your Drive folder.  
-3. If you don’t want social links on the site, or you don’t have profiles yet, just tell us.
+1. For each network below, paste the full web address (starting with https://), or check N/A.
 
 **Done looks like**
 
-We’ve received the list of profile addresses, or you’ve confirmed you don’t want social links.
+Every network has a web address or is marked N/A.
+
+**Card type:** Form
 
 **Presets:** A, B, and C
 
 **Default phase:** Phase 2 — Development
 
-## **Forms Confirmation**
+## **Form Email Settings**
 
 **What we need**
 
-Confirmation of each form on the site: the fields, which fields are required, which inbox should get the submissions, and which email address the message should appear to come from.
+Where each form should send, and the mailbox it should come from. The form fields themselves live in the content doc, on the page where that form sits.
 
 **Why we need it**
 
-Forms are how many visitors contact you. If a field or an inbox is wrong, messages can go missing.
+If the inbox or the from address is wrong, form messages can go missing or land in spam.
 
 **Steps**
 
-1. Open the Google Drive folder or Google Doc linked on this card. It will list the proposed fields for each form (for example, a contact form).  
-2. Confirm or edit the fields, and mark which ones should be required.  
-3. Tell us which email address should be notified when someone submits the form (for example, sales@yourcompany.com), and which address the email should appear to come from (for example, info@yourcompany.com).  
-4. If you need more than one form (contact, quote, career, or something else), list each one and repeat the details above.
+1. Add a row for each form: the form name and the email address (or addresses) that should receive it.  
+2. Enter the from email. This usually matches your sending mailbox, such as info@yourcompany.com.  
+3. On a WordPress site, also tell us your email provider, the sending mailbox, and an IT contact if you have one.
 
 **Done looks like**
 
-You’ve confirmed the fields and the notification email addresses for each form.
+Each form has a name and a send-to email, and the from email is filled in. WordPress sites also include the email provider and sending mailbox.
+
+**Card type:** Form
 
 **Presets:** A, B, and C
 
@@ -523,7 +556,7 @@ We have a product CSV, access to export it, or a completed list in the linked fo
 
 **What we need**
 
-A list of the outside tools the new site should connect to (for example, email marketing such as Mailchimp or Klaviyo, a booking tool, a chat widget, or a CRM), plus access or an invite when we need to set them up.
+Each outside tool the new site should connect to (for example, Mailchimp, a booking tool, a chat widget, or a CRM), what it’s used for, and confirmation that you’ve sent us access.
 
 **Why we need it**
 
@@ -531,14 +564,14 @@ These connections often take time to set up, and we don’t want to discover a r
 
 **Steps**
 
-1. List every tool you want connected to the new site, including any plugins or apps you already pay for and want us to keep.  
-2. For each tool, tell us whether we should connect it, or just leave a place for it.  
-3. If we need to set it up, invite seo@brandastic.com from that tool’s users or team settings, or send us a login you created just for us. Please don’t send your personal password.  
-4. If you have no outside tools to connect, tell us that too.
+1. Add a row for each tool: the tool name, what it’s used for, and check “I sent access” after you’ve invited seo@brandastic.com. Please don’t send your personal password.  
+2. If you don’t have any tools to connect, check that instead.
 
 **Done looks like**
 
-We have a list of tools, plus access or an invite for any we need to set up, or you’ve confirmed there are none.
+Every tool has a name, a use, and “I sent access,” or you’ve confirmed there are none.
+
+**Card type:** Form
 
 **Presets:** A, B, and C
 
@@ -622,60 +655,7 @@ We have your Privacy Policy and Terms (or your go-ahead to use starter pages for
 
 # Phase 3 — QA & Launch
 
-This phase covers launch-day details: reviewing redirects, optional email sending, and store data for a shop.
-
-## **Redirects**
-
-**What we need**
-
-Your review of the redirect list we’ll post in the Google Drive folder or Google Doc linked on this card. A redirect is a rule that sends someone from an old page address to the correct new one, so bookmarks and search results still work.
-
-**Why we need it**
-
-Without a checked list, important pages can end up as “not found” after launch.
-
-**Steps**
-
-1. Wait until we post a list of current page addresses in the Google Drive folder or Google Doc linked on this card (we’ll let you know when it’s ready). You don’t need to build this list yourself.  
-2. Review each old address and the new address we suggested.  
-3. Tell us if any new address is wrong, or if an important page is missing from the list. If everything looks right, confirm that in a short note.
-
-**Done looks like**
-
-You’ve reviewed the redirect list and confirmed it, or sent corrections.
-
-**Presets:** A, B, and C
-
-**Default phase:** Phase 3 — QA & Launch
-
-## **SMTP Information (optional)**
-
-**What we need**
-
-The mailbox that should send form emails (for example, info@yourcompany.com), whether your email is Microsoft 365 or Google Workspace, and a contact on your IT side if you have one. SMTP is the setting that lets the website send email, like the message you get when someone submits a form.
-
-**Why we need it**
-
-When the site sends mail through your own domain, those messages are less likely to land in spam. This is optional, but we recommend it for most WordPress sites.
-
-**Steps**
-
-1. Tell us which email address should send the form messages (often the same as your main info@ address).  
-2. Tell us whether your company email is Microsoft 365, Google Workspace, or something else.  
-3. If you have an IT person or provider, send their name and email. You can forward them the short note below.  
-4. If you’d rather skip this and use a simpler sending method, tell us and we’ll advise.
-
-**Note you can forward to your IT person:**
-
-*We’re working with Brandastic on a new website. The site needs to send form notification emails from our company mailbox (for example, info@ourdomain.com). Could you help connect the website to our email system (Microsoft 365 or Google Workspace) so those messages send from that mailbox? Brandastic’s contact is seo@brandastic.com. The preview site address may change when the site launches, so the authorized web address may need to be updated then.*
-
-**Done looks like**
-
-We’ve received the sending mailbox, your email system (Microsoft 365, Google Workspace, or other), and an IT contact — or you’ve asked us to skip this.
-
-**Presets:** A and B
-
-**Default phase:** Phase 3 — QA & Launch
+This phase covers the store exports we need before launch.
 
 ## **Customer Export (e-commerce only)**
 

@@ -92,6 +92,11 @@ export default async function ClientPage({ params }: { params: Promise<{ slug: s
           resourceUrl: item.resourceUrl,
           status: item.status,
           note: item.note,
+          cardType: item.cardType,
+          formSchema: item.formSchema,
+          fileFolder: item.fileFolder,
+          answers: item.answers,
+          files: item.files,
         }))}
         phases={phases}
         current={current}

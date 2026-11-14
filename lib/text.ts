@@ -13,10 +13,13 @@ const ANCHORS: Record<string, string> = {
   "brand colors or standards": "brand",
   "website content": "website-content",
   "image or video assets": "images",
+  "team headshots": "team",
   "team headshots and bios (optional)": "team",
   "website login (existing wordpress site)": "website-login",
+  "social accounts": "social",
   "social account urls": "social",
-  "forms confirmation": "forms",
+  "form email settings": "form-email",
+  "brand style": "brand-style",
   "product export (e-commerce only)": "products",
   "third-party integrations": "integrations",
   "blog import (including media)": "blog",
@@ -29,12 +32,7 @@ const ANCHORS: Record<string, string> = {
   "updated product export for launch (e-commerce only)": "products-launch",
 };
 
-const RESOURCE_TITLES = new Set([
-  "menu navigation",
-  "forms confirmation",
-  "redirects",
-  "product export (e-commerce only)",
-]);
+const RESOURCE_TITLES = new Set(["menu navigation", "product export (e-commerce only)"]);
 
 export function normalizeTitle(title: string) {
   return title.replace(/\s+/g, " ").trim().toLowerCase();

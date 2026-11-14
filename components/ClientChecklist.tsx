@@ -1,9 +1,10 @@
 "use client";
 
-import { useLayoutEffect, useState, useTransition } from "react";
+import { useEffect, useLayoutEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { chooseContentPage, markSent } from "@/lib/actions";
-import type { ContentPage, ItemStatus, StepBlock } from "@/lib/types";
+import type { Answers, CardType, ContentPage, FormSchema, ItemFile, ItemStatus, StepBlock } from "@/lib/types";
+import { CardForm, FileCard, flushCardSave } from "@/components/CardForm";
 import { CopyButton } from "@/components/CopyButton";
 import { GuideSteps, Paragraphs } from "@/components/RichText";
 import { btnGhost, btnPrimary } from "@/components/Shell";
@@ -21,6 +22,11 @@ export type ChecklistItem = {
   resourceUrl: string | null;
   status: ItemStatus;
   note: string | null;
+  cardType: CardType;
+  formSchema: FormSchema | null;
+  fileFolder: string | null;
+  answers: Answers;
+  files: ItemFile[];
 };
 
 export type ChecklistPhase = {
@@ -305,6 +311,11 @@ function ItemDetail({
 }) {
   const isWebsiteContent = item.anchor === "website-content";
   const showSend = !isWebsiteContent && (item.status === "not_started" || item.status === "needs_changes");
+  const locked = item.status === "sent" || item.status === "received";
+  const [sendError, setSendError] = useState("");
+  useEffect(() => {
+    setSendError("");
+  }, [item.id]);
   const copies = copyRows(item);
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -377,6 +388,12 @@ function ItemDetail({
             </section>
           ) : null}
           {isWebsiteContent ? <WebsitePages contentDocUrl={contentDocUrl} pages={contentPages} /> : null}
+          {item.cardType === "form" && item.formSchema ? (
+            <CardForm itemId={item.id} schema={item.formSchema} initial={item.answers} locked={locked} />
+          ) : null}
+          {item.cardType === "file" ? (
+            <FileCard itemId={item.id} folder={item.fileFolder ?? "Drive"} files={item.files} locked={locked} />
+          ) : null}
           <section>
             <p className="text-[10px] text-gray-400 uppercase font-semibold tracking-wide mb-1.5">Done looks like</p>
             <Paragraphs text={item.doneLooksLike} />
@@ -399,7 +416,13 @@ function ItemDetail({
               data.set("itemId", item.id);
               const anchor = item.anchor;
               startTransition(async () => {
-                await markSent(data);
+                await flushCardSave();
+                const result = await markSent(data);
+                if (result?.error) {
+                  setSendError(result.error);
+                  return;
+                }
+                setSendError("");
                 const nextUrl = `${window.location.pathname}${window.location.search}#${anchor}`;
                 window.history.replaceState(null, "", nextUrl);
                 router.refresh();
@@ -409,6 +432,7 @@ function ItemDetail({
             <button type="submit" className={btnPrimary} disabled={pending}>
               {pending ? "Sending…" : "I sent it"}
             </button>
+            {sendError ? <p className="mt-3 text-sm text-rose-700">{sendError}</p> : null}
           </form>
         ) : null}
 

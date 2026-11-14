@@ -5,6 +5,24 @@ export type StepBlock =
 
 export type ItemStatus = "not_started" | "sent" | "received" | "needs_changes";
 
+export type CardType = "sent" | "form" | "file";
+
+export type FormField =
+  | { kind: "note"; text: string }
+  | { kind: "text" | "email" | "url" | "textarea"; name: string; label: string; help?: string; required?: boolean }
+  | { kind: "select"; name: string; label: string; options: string[]; required?: boolean }
+  | { kind: "checkbox"; name: string; label: string }
+  | { kind: "colors"; name: string; max: number; orName: string; orLabel: string }
+  | { kind: "url-na"; name: string; label: string }
+  | { kind: "repeat"; name: string; addLabel: string; min?: number; max?: number; fields: FormField[] }
+  | { kind: "group"; presets?: Array<"A" | "B" | "C">; label?: string; fields: FormField[] };
+
+export type FormSchema = { fields: FormField[] };
+
+export type Answers = Record<string, unknown>;
+
+export type ItemFile = { id: string; filename: string };
+
 export type LibraryItem = {
   id: string;
   title: string;
@@ -17,6 +35,9 @@ export type LibraryItem = {
   offByDefault: boolean;
   allowsResourceLink: boolean;
   sortOrder: number;
+  cardType: CardType;
+  formSchema: FormSchema | null;
+  fileFolder: string | null;
 };
 
 export type ClientItem = {
@@ -36,6 +57,11 @@ export type ClientItem = {
   status: ItemStatus;
   sentAt: string | null;
   note: string | null;
+  cardType: CardType;
+  formSchema: FormSchema | null;
+  fileFolder: string | null;
+  answers: Answers;
+  files: ItemFile[];
 };
 
 export type ClientRecord = {

@@ -1,6 +1,6 @@
 import { getSql, ready } from "@/lib/db";
 import { todayInLA } from "@/lib/text";
-import type { ClientItem, ClientRecord, ClientStats, ContentPage, ItemStatus, LibraryItem, PageChoice, StepBlock } from "@/lib/types";
+import type { Answers, CardType, ClientItem, ClientRecord, ClientStats, ContentPage, FormSchema, ItemFile, ItemStatus, LibraryItem, PageChoice, StepBlock } from "@/lib/types";
 
 function asSteps(value: unknown): StepBlock[] {
   if (!Array.isArray(value)) return [];
@@ -13,6 +13,19 @@ function asSteps(value: unknown): StepBlock[] {
 
 function asPhase(value: number): 1 | 2 | 3 {
   return value === 2 || value === 3 ? value : 1;
+}
+
+function asCardType(value: string | null): CardType {
+  return value === "form" || value === "file" ? value : "sent";
+}
+
+function asSchema(value: unknown): FormSchema | null {
+  if (!value || typeof value !== "object" || !Array.isArray((value as FormSchema).fields)) return null;
+  return value as FormSchema;
+}
+
+function asAnswers(value: unknown): Answers {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Answers) : {};
 }
 
 function asPreset(value: string): "A" | "B" | "C" {
@@ -31,6 +44,9 @@ type LibraryRow = {
   off_by_default: boolean;
   allows_resource_link: boolean;
   sort_order: number;
+  card_type: string | null;
+  form_schema: unknown;
+  file_folder: string | null;
 };
 
 function mapLibrary(row: LibraryRow): LibraryItem {
@@ -46,6 +62,9 @@ function mapLibrary(row: LibraryRow): LibraryItem {
     offByDefault: row.off_by_default,
     allowsResourceLink: row.allows_resource_link,
     sortOrder: row.sort_order,
+    cardType: asCardType(row.card_type),
+    formSchema: asSchema(row.form_schema),
+    fileFolder: row.file_folder,
   };
 }
 
@@ -94,9 +113,13 @@ type ItemRow = {
   status: ItemStatus;
   sent_at: Date | string | null;
   note: string | null;
+  card_type: string | null;
+  form_schema: unknown;
+  file_folder: string | null;
+  answers: unknown;
 };
 
-function mapItem(row: ItemRow): ClientItem {
+function mapItem(row: ItemRow, files: ItemFile[] = []): ClientItem {
   return {
     id: row.id,
     clientId: row.client_id,
@@ -114,6 +137,11 @@ function mapItem(row: ItemRow): ClientItem {
     status: row.status,
     sentAt: row.sent_at ? new Date(row.sent_at).toISOString() : null,
     note: row.note,
+    cardType: asCardType(row.card_type),
+    formSchema: asSchema(row.form_schema),
+    fileFolder: row.file_folder,
+    answers: asAnswers(row.answers),
+    files,
   };
 }
 
@@ -174,10 +202,23 @@ export async function listContentPages(clientId: string) {
 
 export async function listClientItems(clientId: string) {
   await ready();
-  const rows = await getSql()<ItemRow[]>`
+  const sql = getSql();
+  const rows = await sql<ItemRow[]>`
     select * from client_items where client_id = ${clientId} order by phase, sort_order, title
   `;
-  return rows.map(mapItem);
+  const files = await sql<{ id: string; client_item_id: string; filename: string }[]>`
+    select f.id, f.client_item_id, f.filename
+    from client_files f
+    join client_items i on i.id = f.client_item_id
+    where i.client_id = ${clientId}
+    order by f.created_at
+  `;
+  return rows.map((row) =>
+    mapItem(
+      row,
+      files.filter((file) => file.client_item_id === row.id).map((file) => ({ id: file.id, filename: file.filename })),
+    ),
+  );
 }
 
 export async function listClientsWithStats(): Promise<ClientStats[]> {
