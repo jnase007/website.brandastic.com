@@ -10,7 +10,7 @@ export default function HomePage() {
   return (
     <Shell
       footer={
-        <a href="/onboarding/admin" className="hover:text-gray-600">
+        <a href="/admin" className="hover:text-gray-600">
           Team login
         </a>
       }

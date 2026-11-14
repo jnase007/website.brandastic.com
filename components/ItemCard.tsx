@@ -1,7 +1,7 @@
 import { markNeedsChanges, markReceived, markSent, removeClientItem, updateResourceUrl } from "@/lib/actions";
 import { formatTimestamp } from "@/lib/text";
 import type { ClientItem } from "@/lib/types";
-import { AnswerSummary, FileSummary } from "@/components/AnswerSummary";
+import { AnswerSummary, FileSummary, MenuSummary } from "@/components/AnswerSummary";
 import { ConfirmForm } from "@/components/ConfirmForm";
 import { CopyButton } from "@/components/CopyButton";
 import { Paragraphs, Steps } from "@/components/RichText";
@@ -141,7 +141,8 @@ export function ItemCard({
             </form>
           ) : null}
 
-          {mode === "admin" && item.cardType === "form" && item.formSchema ? (
+          {mode === "admin" && item.anchor === "menu" ? <MenuSummary answers={item.answers} /> : null}
+          {mode === "admin" && item.anchor !== "menu" && item.cardType === "form" && item.formSchema ? (
             <AnswerSummary schema={item.formSchema} answers={item.answers} />
           ) : null}
           {mode === "admin" && item.cardType === "file" ? <FileSummary files={item.files} /> : null}

@@ -87,6 +87,7 @@ export type ContentPage = {
   choice: PageChoice | null;
   status: ItemStatus;
   note: string | null;
+  requested: boolean;
 };
 
 export type ClientStats = ClientRecord & {

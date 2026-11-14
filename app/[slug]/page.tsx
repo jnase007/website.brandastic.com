@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import { PHASES, helpMailto } from "@/lib/brand";
 import { currentPhase, dueForPhase, getClientBySlug, listClientItems, listContentPages } from "@/lib/queries";
@@ -7,6 +8,8 @@ import { ClientChecklist } from "@/components/ClientChecklist";
 import { Shell, btnPrimary } from "@/components/Shell";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -14,9 +17,10 @@ export const metadata: Metadata = {
 };
 
 export default async function ClientPage({ params }: { params: Promise<{ slug: string }> }) {
+  await connection();
   const { slug } = await params;
   const client = await getClientBySlug(slug);
-  if (!client) notFound();
+  if (!client || client.slug !== slug) notFound();
   const [items, contentPages] = await Promise.all([listClientItems(client.id), listContentPages(client.id)]);
   const received = items.filter((item) => item.status === "received").length;
   const sent = items.filter((item) => item.status === "sent").length;

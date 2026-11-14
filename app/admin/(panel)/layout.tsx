@@ -12,13 +12,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <Shell
       actions={
         <>
-          <Link href="/onboarding/admin" className="text-sm font-semibold text-gray-600 hover:text-gray-900">
+          <Link href="/admin" className="text-sm font-semibold text-gray-600 hover:text-gray-900">
             Clients
           </Link>
-          <Link href="/onboarding/admin/new" className="text-sm font-semibold text-gray-600 hover:text-gray-900">
+          <Link href="/admin/new" className="text-sm font-semibold text-gray-600 hover:text-gray-900">
             New client
           </Link>
-          <Link href="/onboarding/admin/library" className="text-sm font-semibold text-gray-600 hover:text-gray-900">
+          <Link href="/admin/library" className="text-sm font-semibold text-gray-600 hover:text-gray-900">
             Item library
           </Link>
           <form action={logout}>

@@ -6,7 +6,7 @@
 
 # Purpose
 
-This is the master item library for a future client onboarding site. Each item below will become a card on a private client page, at a link like website.brandastic.com/onboarding/nextmod-7f3k. Cards are grouped into three phases, shown as accordions. The current phase opens first, and clients can open later phases and get ahead if they want.
+This is the master item library for a future client onboarding site. Each item below will become a card on a private client page, at a link like website.brandastic.com/nextmod-7f3k. Cards are grouped into three phases, shown as accordions. The current phase opens first, and clients can open later phases and get ahead if they want.
 
 The copy under each item is written for the client, in plain language. When you set up a client on the admin page, you will pick a preset, then add or remove items so they only see what applies to them.
 
@@ -76,7 +76,7 @@ This phase gathers what we need to start design: the page list, website content,
 
 **What we need**
 
-A yes or no on the page list in the Google Drive folder or Google Doc linked on this card — tell us if any pages should be added, removed, or renamed.
+A decision on each page in the list below: keep it, remove it, or rename it. Add any pages that are missing.
 
 **Why we need it**
 
@@ -84,13 +84,15 @@ The menu and page list have to be settled before we start design, so we don’t 
 
 **Steps**
 
-1. Open the Google Drive folder or Google Doc linked on this card. It will list the proposed pages.  
-2. Read the list of main pages and subpages, including items like About, Services, Team, Contact, Privacy Policy, and Terms.  
-3. Reply with any changes you want, or confirm that the list is correct.
+1. For each page, choose Keep, Remove, or Rename. If you rename a page, type the new name.
+2. Use Add a page for anything that isn’t on the list.
+3. Click I sent it when the list is right.
 
 **Done looks like**
 
-You’ve confirmed the page list, or sent a short note with the changes you want.
+Every page is marked keep, remove, or rename, and any extra pages you need are listed.
+
+**Card type:** Form
 
 **Presets:** A, B, and C
 

@@ -1,17 +1,14 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { removeItemFile, saveItemAnswers, uploadItemFile } from "@/lib/actions";
+import { removeItemFile, uploadItemFile } from "@/lib/actions";
 import { mergeAnswers } from "@/lib/form-answers";
 import type { Answers, FormField, FormSchema, ItemFile } from "@/lib/types";
 import { fieldClass } from "@/components/Shell";
+import { useAutosave } from "@/components/useAutosave";
 
-let pendingSave = Promise.resolve();
-
-export function flushCardSave() {
-  return pendingSave;
-}
+export { flushCardSave } from "@/components/useAutosave";
 
 export function CardForm({
   itemId,
@@ -25,30 +22,19 @@ export function CardForm({
   locked: boolean;
 }) {
   const [answers, setAnswers] = useState(() => mergeAnswers(schema, initial));
-  const [saved, setSaved] = useState<boolean | null>(null);
-  const [, startTransition] = useTransition();
-  const timer = useRef(0);
+  const { saved, error, save } = useAutosave(itemId, locked);
 
   function update(next: Answers) {
     setAnswers(next);
-    if (locked) return;
-    setSaved(false);
-    window.clearTimeout(timer.current);
-    pendingSave = new Promise((resolve) => {
-      timer.current = window.setTimeout(() => {
-        startTransition(async () => {
-          await saveItemAnswers(itemId, next);
-          setSaved(true);
-          resolve();
-        });
-      }, 400);
-    });
+    save(next);
   }
 
   return (
     <div className="space-y-4">
       <Fields fields={schema.fields} answers={answers} locked={locked} onChange={update} />
-      <p className="text-xs text-gray-400">{locked ? "Sent for review." : saved === null ? "" : saved ? "Saved" : "Saving…"}</p>
+      <p className={`text-xs ${error ? "text-rose-700" : "text-gray-400"}`}>
+        {locked ? "Sent for review." : error ? error : saved === null ? "" : saved ? "Saved" : "Saving…"}
+      </p>
     </div>
   );
 }
@@ -290,7 +276,7 @@ export function FileCard({
         <ul className="space-y-2">
           {files.map((file) => (
             <li key={file.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
-              <a href={`/onboarding/file/${file.id}`} className="font-semibold text-blue-600 underline break-all">
+              <a href={`/file/${file.id}`} className="font-semibold text-blue-600 underline break-all">
                 {file.filename}
               </a>
               {locked ? null : (

@@ -9,6 +9,7 @@ import { RESERVED_SLUGS } from "@/lib/legacy-channels";
 import { getLibraryItem, listLibrary } from "@/lib/queries";
 import { schemaForPreset } from "@/lib/card-forms";
 import { validateAnswers } from "@/lib/form-answers";
+import { validateMenuAnswers } from "@/lib/menu";
 import { listGoogleDocTabs } from "@/lib/google-doc-tabs";
 import { cleanHttpUrl, isDateInput, makeClientSlug, slugify, textToSteps } from "@/lib/text";
 import type { ItemStatus, LibraryItem } from "@/lib/types";
@@ -61,12 +62,12 @@ export async function login(_prev: ActionState, formData: FormData): Promise<Act
   const password = String(formData.get("password") ?? "");
   if (!passwordsMatch(password, expected)) return { error: "That password doesn’t match." };
   await setAdminCookie();
-  redirect("/onboarding/admin");
+  redirect("/admin");
 }
 
 export async function logout() {
   await clearAdminCookie();
-  redirect("/onboarding/admin/login");
+  redirect("/admin/login");
 }
 
 export async function createClient(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -125,8 +126,8 @@ export async function createClient(_prev: ActionState, formData: FormData): Prom
     }
   });
 
-  revalidatePath("/onboarding/admin");
-  redirect(`/onboarding/admin/clients/${slug}?created=1`);
+  revalidatePath("/admin");
+  redirect(`/admin/clients/${slug}?created=1`);
 }
 
 export async function updateClient(formData: FormData) {
@@ -135,8 +136,8 @@ export async function updateClient(formData: FormData) {
   const slug = String(formData.get("slug") ?? "");
   const name = String(formData.get("name") ?? "").trim();
   const drive = cleanHttpUrl(String(formData.get("driveUrl") ?? ""));
-  if (!name) redirect(`/onboarding/admin/clients/${slug}?error=${encodeURIComponent("Enter the client name.")}`);
-  if (drive.error) redirect(`/onboarding/admin/clients/${slug}?error=${encodeURIComponent(drive.error)}`);
+  if (!name) redirect(`/admin/clients/${slug}?error=${encodeURIComponent("Enter the client name.")}`);
+  if (drive.error) redirect(`/admin/clients/${slug}?error=${encodeURIComponent(drive.error)}`);
   const due1 = dateOrNull(formData.get("due1"));
   const due2 = dateOrNull(formData.get("due2"));
   const due3 = dateOrNull(formData.get("due3"));
@@ -145,10 +146,10 @@ export async function updateClient(formData: FormData) {
     set name = ${name}, drive_url = ${drive.url}, due_phase_1 = ${due1}, due_phase_2 = ${due2}, due_phase_3 = ${due3}
     where slug = ${slug}
   `;
-  revalidatePath("/onboarding/admin");
-  revalidatePath(`/onboarding/admin/clients/${slug}`);
-  revalidatePath(`/onboarding/${slug}`);
-  redirect(`/onboarding/admin/clients/${slug}`);
+  revalidatePath("/admin");
+  revalidatePath(`/admin/clients/${slug}`);
+  revalidatePath(`/${slug}`);
+  redirect(`/admin/clients/${slug}`);
 }
 
 export async function addClientItem(formData: FormData) {
@@ -157,17 +158,17 @@ export async function addClientItem(formData: FormData) {
   const slug = String(formData.get("slug") ?? "");
   const libraryId = String(formData.get("libraryId") ?? "");
   const item = await getLibraryItem(libraryId);
-  if (!item) redirect(`/onboarding/admin/clients/${slug}?error=${encodeURIComponent("That item is no longer in the library.")}`);
+  if (!item) redirect(`/admin/clients/${slug}?error=${encodeURIComponent("That item is no longer in the library.")}`);
   const link = cleanHttpUrl(String(formData.get("resourceUrl") ?? ""));
-  if (link.error) redirect(`/onboarding/admin/clients/${slug}?error=${encodeURIComponent(link.error)}`);
+  if (link.error) redirect(`/admin/clients/${slug}?error=${encodeURIComponent(link.error)}`);
 
   const sql = getSql();
   const clients = await sql<{ id: string; preset: "A" | "B" | "C" }[]>`select id, preset from clients where slug = ${slug}`;
   const client = clients[0];
-  if (!client) redirect("/onboarding/admin");
+  if (!client) redirect("/admin");
   const existing = await sql`select 1 from client_items where client_id = ${client.id} and anchor = ${item.id}`;
   if (existing.length) {
-    redirect(`/onboarding/admin/clients/${slug}?error=${encodeURIComponent("That item is already on this client.")}`);
+    redirect(`/admin/clients/${slug}?error=${encodeURIComponent("That item is already on this client.")}`);
   }
   const row = snapshot(item, client.id, item.allowsResourceLink ? link.url : null, client.preset);
   await sql`
@@ -181,10 +182,10 @@ export async function addClientItem(formData: FormData) {
       ${row.formSchema ? sql.json(row.formSchema) : null}, ${row.fileFolder}
     )
   `;
-  revalidatePath(`/onboarding/admin/clients/${slug}`);
-  revalidatePath(`/onboarding/${slug}`);
-  revalidatePath("/onboarding/admin");
-  redirect(`/onboarding/admin/clients/${slug}`);
+  revalidatePath(`/admin/clients/${slug}`);
+  revalidatePath(`/${slug}`);
+  revalidatePath("/admin");
+  redirect(`/admin/clients/${slug}`);
 }
 
 export async function removeClientItem(formData: FormData) {
@@ -197,9 +198,9 @@ export async function removeClientItem(formData: FormData) {
     where id = ${itemId}
       and client_id = (select id from clients where slug = ${slug})
   `;
-  revalidatePath(`/onboarding/admin/clients/${slug}`);
-  revalidatePath(`/onboarding/${slug}`);
-  revalidatePath("/onboarding/admin");
+  revalidatePath(`/admin/clients/${slug}`);
+  revalidatePath(`/${slug}`);
+  revalidatePath("/admin");
 }
 
 export async function updateResourceUrl(formData: FormData) {
@@ -208,7 +209,7 @@ export async function updateResourceUrl(formData: FormData) {
   const slug = String(formData.get("slug") ?? "");
   const itemId = String(formData.get("itemId") ?? "");
   const link = cleanHttpUrl(String(formData.get("resourceUrl") ?? ""));
-  if (link.error) redirect(`/onboarding/admin/clients/${slug}?error=${encodeURIComponent(link.error)}`);
+  if (link.error) redirect(`/admin/clients/${slug}?error=${encodeURIComponent(link.error)}`);
   await getSql()`
     update client_items
     set resource_url = ${link.url}, updated_at = now()
@@ -216,9 +217,9 @@ export async function updateResourceUrl(formData: FormData) {
       and allows_resource_link = true
       and client_id = (select id from clients where slug = ${slug})
   `;
-  revalidatePath(`/onboarding/admin/clients/${slug}`);
-  revalidatePath(`/onboarding/${slug}`);
-  redirect(`/onboarding/admin/clients/${slug}#${String(formData.get("anchor") ?? "")}`);
+  revalidatePath(`/admin/clients/${slug}`);
+  revalidatePath(`/${slug}`);
+  redirect(`/admin/clients/${slug}#${String(formData.get("anchor") ?? "")}`);
 }
 
 async function clientSlugForItem(itemId: string) {
@@ -235,14 +236,20 @@ export async function markSent(formData: FormData) {
   await ready();
   const itemId = String(formData.get("itemId") ?? "");
   const sql = getSql();
-  const rows = await sql<{ card_type: string; form_schema: unknown; answers: unknown; files: number }[]>`
-    select i.card_type, i.form_schema, i.answers, (select count(*)::int from client_files f where f.client_item_id = i.id) as files
+  const rows = await sql<{ anchor: string; client_id: string; card_type: string; form_schema: unknown; answers: unknown; files: number }[]>`
+    select i.anchor, i.client_id, i.card_type, i.form_schema, i.answers, (select count(*)::int from client_files f where f.client_item_id = i.id) as files
     from client_items i
     where i.id = ${itemId} and i.status in ('not_started', 'needs_changes')
   `;
   const item = rows[0];
   if (!item) return { error: "This item can no longer be sent." };
-  if (item.card_type === "form" && item.form_schema && typeof item.form_schema === "object") {
+  if (item.anchor === "menu") {
+    const pages = await sql<{ id: string; title: string; requested: boolean }[]>`
+      select id, title, requested from content_pages where client_id = ${item.client_id}
+    `;
+    const error = validateMenuAnswers(pages, (item.answers ?? {}) as import("@/lib/types").Answers);
+    if (error) return { error };
+  } else if (item.card_type === "form" && item.form_schema && typeof item.form_schema === "object") {
     const error = validateAnswers(item.form_schema as import("@/lib/types").FormSchema, (item.answers ?? {}) as import("@/lib/types").Answers);
     if (error) return { error };
   }
@@ -254,24 +261,10 @@ export async function markSent(formData: FormData) {
   `;
   const slug = await clientSlugForItem(itemId);
   if (!slug) return {};
-  revalidatePath(`/onboarding/${slug}`);
-  revalidatePath(`/onboarding/admin/clients/${slug}`);
-  revalidatePath("/onboarding/admin");
+  revalidatePath(`/${slug}`);
+  revalidatePath(`/admin/clients/${slug}`);
+  revalidatePath("/admin");
   return {};
-}
-
-export async function saveItemAnswers(itemId: string, answers: import("@/lib/types").Answers) {
-  await ready();
-  const sql = getSql();
-  const rows = await sql<{ slug: string }[]>`
-    update client_items i
-    set answers = ${sql.json(JSON.parse(JSON.stringify(answers)))}, updated_at = now()
-    from clients c
-    where i.id = ${itemId} and i.client_id = c.id and i.card_type = 'form' and i.status in ('not_started', 'needs_changes')
-    returning c.slug
-  `;
-  const slug = rows[0]?.slug;
-  if (slug) revalidatePath(`/onboarding/admin/clients/${slug}`);
 }
 
 const MAX_FILE_BYTES = 8 * 1024 * 1024;
@@ -294,8 +287,8 @@ export async function uploadItemFile(formData: FormData) {
   `;
   const slug = await clientSlugForItem(itemId);
   if (slug) {
-    revalidatePath(`/onboarding/${slug}`);
-    revalidatePath(`/onboarding/admin/clients/${slug}`);
+    revalidatePath(`/${slug}`);
+    revalidatePath(`/admin/clients/${slug}`);
   }
   return {};
 }
@@ -314,8 +307,8 @@ export async function removeItemFile(formData: FormData) {
   if (!itemId) return;
   const slug = await clientSlugForItem(itemId);
   if (slug) {
-    revalidatePath(`/onboarding/${slug}`);
-    revalidatePath(`/onboarding/admin/clients/${slug}`);
+    revalidatePath(`/${slug}`);
+    revalidatePath(`/admin/clients/${slug}`);
   }
 }
 
@@ -330,9 +323,9 @@ export async function markReceived(formData: FormData) {
   `;
   const slug = await clientSlugForItem(itemId);
   if (!slug) return;
-  revalidatePath(`/onboarding/${slug}`);
-  revalidatePath(`/onboarding/admin/clients/${slug}`);
-  revalidatePath("/onboarding/admin");
+  revalidatePath(`/${slug}`);
+  revalidatePath(`/admin/clients/${slug}`);
+  revalidatePath("/admin");
 }
 
 export async function markNeedsChanges(formData: FormData) {
@@ -342,7 +335,7 @@ export async function markNeedsChanges(formData: FormData) {
   const slug = String(formData.get("slug") ?? "");
   const note = String(formData.get("note") ?? "").trim();
   if (!note) {
-    redirect(`/onboarding/admin/clients/${slug}?error=${encodeURIComponent("Add a short note about what needs to change.")}`);
+    redirect(`/admin/clients/${slug}?error=${encodeURIComponent("Add a short note about what needs to change.")}`);
   }
   await getSql()`
     update client_items
@@ -350,10 +343,10 @@ export async function markNeedsChanges(formData: FormData) {
     where id = ${itemId}
   `;
   const pathSlug = (await clientSlugForItem(itemId)) ?? slug;
-  revalidatePath(`/onboarding/${pathSlug}`);
-  revalidatePath(`/onboarding/admin/clients/${pathSlug}`);
-  revalidatePath("/onboarding/admin");
-  redirect(`/onboarding/admin/clients/${pathSlug}#${String(formData.get("anchor") ?? "")}`);
+  revalidatePath(`/${pathSlug}`);
+  revalidatePath(`/admin/clients/${pathSlug}`);
+  revalidatePath("/admin");
+  redirect(`/admin/clients/${pathSlug}#${String(formData.get("anchor") ?? "")}`);
 }
 
 function libraryFields(formData: FormData) {
@@ -428,9 +421,9 @@ export async function saveLibraryItem(_prev: ActionState, formData: FormData): P
     `;
   }
 
-  revalidatePath("/onboarding/admin/library");
-  revalidatePath("/onboarding/admin/new");
-  redirect("/onboarding/admin/library");
+  revalidatePath("/admin/library");
+  revalidatePath("/admin/new");
+  redirect("/admin/library");
 }
 
 export async function deleteLibraryItem(formData: FormData) {
@@ -438,9 +431,9 @@ export async function deleteLibraryItem(formData: FormData) {
   await ready();
   const id = String(formData.get("id") ?? "");
   await getSql()`delete from library_items where id = ${id}`;
-  revalidatePath("/onboarding/admin/library");
-  revalidatePath("/onboarding/admin/new");
-  redirect("/onboarding/admin/library");
+  revalidatePath("/admin/library");
+  revalidatePath("/admin/new");
+  redirect("/admin/library");
 }
 
 async function clientSlug(clientId: string) {
@@ -450,7 +443,9 @@ async function clientSlug(clientId: string) {
 
 async function syncWebsiteContent(clientId: string) {
   const sql = getSql();
-  const pages = await sql<{ status: ItemStatus }[]>`select status from content_pages where client_id = ${clientId}`;
+  const pages = await sql<{ status: ItemStatus }[]>`
+    select status from content_pages where client_id = ${clientId} and requested = false
+  `;
   let status: ItemStatus = "not_started";
   if (pages.length > 0 && pages.every((page) => page.status === "received")) status = "received";
   else if (pages.some((page) => page.status === "needs_changes")) status = "needs_changes";
@@ -463,23 +458,23 @@ async function syncWebsiteContent(clientId: string) {
 }
 
 function revalidateClient(slug: string) {
-  revalidatePath("/onboarding/admin");
-  revalidatePath(`/onboarding/admin/clients/${slug}`);
-  revalidatePath(`/onboarding/${slug}`);
+  revalidatePath("/admin");
+  revalidatePath(`/admin/clients/${slug}`);
+  revalidatePath(`/${slug}`);
 }
 
 async function syncDocTabs(clientId: string, docUrl: string) {
   const tabs = await listGoogleDocTabs(docUrl);
   const sql = getSql();
-  const existing = await sql<{ id: string; title: string; tab_id: string | null; status: ItemStatus; choice: string | null }[]>`
-    select id, title, tab_id, status, choice from content_pages where client_id = ${clientId}
+  const existing = await sql<{ id: string; title: string; tab_id: string | null; status: ItemStatus; choice: string | null; requested: boolean }[]>`
+    select id, title, tab_id, status, choice, requested from content_pages where client_id = ${clientId}
   `;
   const byTab = new Map(existing.filter((page) => page.tab_id).map((page) => [page.tab_id as string, page]));
   const used = new Set<string>();
   let order = 1;
 
   for (const tab of tabs) {
-    const named = existing.find((page) => !page.tab_id && !used.has(page.id) && page.title === tab.title);
+    const named = existing.find((page) => !page.requested && !page.tab_id && !used.has(page.id) && page.title === tab.title);
     const match = byTab.get(tab.id) ?? named;
     if (match) {
       used.add(match.id);
@@ -499,6 +494,11 @@ async function syncDocTabs(clientId: string, docUrl: string) {
 
   for (const page of existing) {
     if (used.has(page.id)) continue;
+    if (page.requested) {
+      await sql`update content_pages set sort_order = ${order}, updated_at = now() where id = ${page.id}`;
+      order += 1;
+      continue;
+    }
     if (page.tab_id && page.status === "not_started" && !page.choice) {
       await sql`delete from content_pages where id = ${page.id}`;
       continue;
@@ -516,15 +516,15 @@ export async function saveContentDocUrl(formData: FormData) {
   await ready();
   const slug = String(formData.get("slug") ?? "");
   const link = cleanHttpUrl(String(formData.get("contentDocUrl") ?? ""));
-  if (link.error) redirect(`/onboarding/admin/clients/${slug}?error=${encodeURIComponent(`Content doc: ${link.error}`)}`);
+  if (link.error) redirect(`/admin/clients/${slug}?error=${encodeURIComponent(`Content doc: ${link.error}`)}`);
   const sql = getSql();
   const clients = await sql<{ id: string }[]>`select id from clients where slug = ${slug}`;
   const client = clients[0];
-  if (!client) redirect("/onboarding/admin");
+  if (!client) redirect("/admin");
   await sql`update clients set content_doc_url = ${link.url} where slug = ${slug}`;
   if (!link.url) {
     revalidateClient(slug);
-    redirect(`/onboarding/admin/clients/${slug}`);
+    redirect(`/admin/clients/${slug}`);
   }
   let tabCount = 0;
   try {
@@ -532,10 +532,10 @@ export async function saveContentDocUrl(formData: FormData) {
   } catch (error) {
     revalidateClient(slug);
     const message = error instanceof Error ? error.message : "Could not read the document tabs.";
-    redirect(`/onboarding/admin/clients/${slug}?error=${encodeURIComponent(message)}`);
+    redirect(`/admin/clients/${slug}?error=${encodeURIComponent(message)}`);
   }
   revalidateClient(slug);
-  redirect(`/onboarding/admin/clients/${slug}?tabs=${tabCount}`);
+  redirect(`/admin/clients/${slug}?tabs=${tabCount}`);
 }
 
 export async function addContentPage(formData: FormData) {
@@ -543,11 +543,11 @@ export async function addContentPage(formData: FormData) {
   await ready();
   const slug = String(formData.get("slug") ?? "");
   const title = String(formData.get("title") ?? "").trim();
-  if (!title) redirect(`/onboarding/admin/clients/${slug}?error=${encodeURIComponent("Enter a page name.")}`);
+  if (!title) redirect(`/admin/clients/${slug}?error=${encodeURIComponent("Enter a page name.")}`);
   const sql = getSql();
   const clients = await sql<{ id: string }[]>`select id from clients where slug = ${slug}`;
   const client = clients[0];
-  if (!client) redirect("/onboarding/admin");
+  if (!client) redirect("/admin");
   const order = await sql<{ next: number }[]>`select coalesce(max(sort_order), 0) + 1 as next from content_pages where client_id = ${client.id}`;
   await sql`
     insert into content_pages (id, client_id, title, sort_order)
@@ -555,7 +555,7 @@ export async function addContentPage(formData: FormData) {
   `;
   await syncWebsiteContent(client.id);
   revalidateClient(slug);
-  redirect(`/onboarding/admin/clients/${slug}`);
+  redirect(`/admin/clients/${slug}`);
 }
 
 export async function removeContentPage(formData: FormData) {
@@ -567,7 +567,7 @@ export async function removeContentPage(formData: FormData) {
   const rows = await sql<{ client_id: string }[]>`delete from content_pages where id = ${pageId} returning client_id`;
   if (rows[0]) await syncWebsiteContent(rows[0].client_id);
   revalidateClient(slug);
-  redirect(`/onboarding/admin/clients/${slug}`);
+  redirect(`/admin/clients/${slug}`);
 }
 
 export async function chooseContentPage(formData: FormData) {
@@ -603,7 +603,7 @@ export async function markPageReceived(formData: FormData) {
   `;
   if (rows[0]) await syncWebsiteContent(rows[0].client_id);
   revalidateClient(slug);
-  redirect(`/onboarding/admin/clients/${slug}`);
+  redirect(`/admin/clients/${slug}`);
 }
 
 export async function markPageNeedsChanges(formData: FormData) {
@@ -612,7 +612,7 @@ export async function markPageNeedsChanges(formData: FormData) {
   const slug = String(formData.get("slug") ?? "");
   const pageId = String(formData.get("pageId") ?? "");
   const note = String(formData.get("note") ?? "").trim();
-  if (!note) redirect(`/onboarding/admin/clients/${slug}?error=${encodeURIComponent("Add a short note about what needs to change.")}`);
+  if (!note) redirect(`/admin/clients/${slug}?error=${encodeURIComponent("Add a short note about what needs to change.")}`);
   const sql = getSql();
   const rows = await sql<{ client_id: string }[]>`
     update content_pages
@@ -622,5 +622,5 @@ export async function markPageNeedsChanges(formData: FormData) {
   `;
   if (rows[0]) await syncWebsiteContent(rows[0].client_id);
   revalidateClient(slug);
-  redirect(`/onboarding/admin/clients/${slug}`);
+  redirect(`/admin/clients/${slug}`);
 }

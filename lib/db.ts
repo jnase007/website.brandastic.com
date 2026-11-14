@@ -129,6 +129,7 @@ async function setup() {
   await sql`create index if not exists client_files_item_idx on client_files (client_item_id)`;
   await sql`alter table content_pages add column if not exists tab_id text`;
   await sql`create unique index if not exists content_pages_client_tab_idx on content_pages (client_id, tab_id)`;
+  await sql`alter table content_pages add column if not exists requested boolean not null default false`;
 
   const existing = await sql<{ count: string }[]>`select count(*)::text as count from library_items`;
   if (existing[0]?.count !== "0") return;

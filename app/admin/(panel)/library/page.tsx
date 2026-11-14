@@ -15,7 +15,7 @@ export default async function LibraryPage() {
           <h1 className="text-3xl font-extrabold">Item library</h1>
           <p className="text-gray-500 mt-1">Edits apply to new clients. Existing clients keep the items they already have.</p>
         </div>
-        <Link href="/onboarding/admin/library/new" className={btnPrimary}>
+        <Link href="/admin/library/new" className={btnPrimary}>
           Add item
         </Link>
       </div>
@@ -37,7 +37,7 @@ export default async function LibraryPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Link href={`/onboarding/admin/library/${item.id}`} className="text-sm font-semibold text-gray-900">
+                      <Link href={`/admin/library/${item.id}`} className="text-sm font-semibold text-gray-900">
                         Edit
                       </Link>
                       <ConfirmForm action={deleteLibraryItem} message={`Remove “${item.title}” from the library? Existing clients keep their copy.`}>

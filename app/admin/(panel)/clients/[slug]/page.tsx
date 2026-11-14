@@ -38,7 +38,7 @@ export default async function AdminClientPage({
   const hasWebsiteContent = items.some((item) => item.anchor === "website-content");
   const assigned = new Set(items.map((item) => item.libraryItemId));
   const available = library.filter((item) => !assigned.has(item.id));
-  const pageUrl = `${await origin()}/onboarding/${client.slug}`;
+  const pageUrl = `${await origin()}/${client.slug}`;
   const current = currentPhase(items);
   const received = items.filter((item) => item.status === "received").length;
 
@@ -78,12 +78,12 @@ export default async function AdminClientPage({
         <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-5 py-4">
           <p className="font-semibold">Client link is ready</p>
           <p className="text-sm break-all mt-1">{pageUrl}</p>
-          <CopyButton text={pageUrl} className={`${btnPrimary} mt-3`} />
+          <CopyButton text={pageUrl} label="Copy client link" className={`${btnPrimary} mt-3`} />
         </div>
       ) : (
         <div className="flex flex-wrap items-center gap-2">
-          <CopyButton text={pageUrl} className={btnPrimary} />
-          <Link href={`/onboarding/${client.slug}`} className={btnGhost} target="_blank">
+          <CopyButton text={pageUrl} label="Copy client link" className={btnPrimary} />
+          <Link href={`/${client.slug}`} className={btnGhost} target="_blank">
             View as client
           </Link>
         </div>
@@ -125,11 +125,11 @@ export default async function AdminClientPage({
         </button>
       </form>
 
-      {hasWebsiteContent ? (
+      {hasWebsiteContent || contentPages.some((page) => page.requested) ? (
         <section className="rounded-2xl border border-gray-200 bg-white p-5 space-y-4">
           <div>
             <h2 className="text-lg font-bold">Website pages</h2>
-            <p className="text-sm text-gray-500 mt-1">Saving the content doc adds a page for each tab. Share the doc so anyone with the link can view it. The Website Content card is Received only when every page is.</p>
+            <p className="text-sm text-gray-500 mt-1">Saving the content doc adds a page for each tab. Share the doc so anyone with the link can view it. Pages the client adds on Menu Navigation show here as Requested. The Website Content card is Received only when every page is.</p>
           </div>
           <form action={saveContentDocUrl} className="flex flex-col sm:flex-row gap-2">
             <input type="hidden" name="slug" value={client.slug} />
@@ -159,11 +159,16 @@ export default async function AdminClientPage({
                 <li key={page.id} className="rounded-xl border border-gray-200 p-4 space-y-3">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-sm font-bold">{page.title}</p>
-                    <StatusFlag status={page.status} />
+                    {page.requested ? (
+                      <span className="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">Requested</span>
+                    ) : (
+                      <StatusFlag status={page.status} />
+                    )}
                   </div>
-                  {page.choice ? (
+                  {page.requested ? null : page.choice ? (
                     <p className="text-xs text-gray-500">{page.choice === "in_doc" ? "My content is in the doc" : "Use my current site"}</p>
                   ) : null}
+                  {page.requested ? null : (
                   <div className="flex flex-col sm:flex-row sm:items-start gap-3">
                     <form action={markPageReceived}>
                       <input type="hidden" name="slug" value={client.slug} />
@@ -186,6 +191,7 @@ export default async function AdminClientPage({
                       </button>
                     </form>
                   </div>
+                  )}
                   <form action={removeContentPage}>
                     <input type="hidden" name="slug" value={client.slug} />
                     <input type="hidden" name="pageId" value={page.id} />

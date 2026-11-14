@@ -47,4 +47,5 @@ export const LEGACY_CHANNELS = new Set([
   "shopify-admin",
 ]);
 
-export const RESERVED_SLUGS = new Set([...LEGACY_CHANNELS, "admin"]);
+/** Slugs that would collide with a real route or an old marketing path. */
+export const RESERVED_SLUGS = new Set([...LEGACY_CHANNELS, "admin", "api", "file", "onboarding"]);

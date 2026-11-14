@@ -180,9 +180,10 @@ export async function listContentPages(clientId: string) {
       choice: string | null;
       status: ItemStatus;
       note: string | null;
+      requested: boolean;
     }[]
   >`
-    select id, client_id, title, sort_order, choice, status, note
+    select id, client_id, title, sort_order, choice, status, note, requested
     from content_pages
     where client_id = ${clientId}
     order by sort_order, title
@@ -196,6 +197,7 @@ export async function listContentPages(clientId: string) {
       choice: asChoice(row.choice),
       status: row.status,
       note: row.note,
+      requested: row.requested,
     }),
   );
 }

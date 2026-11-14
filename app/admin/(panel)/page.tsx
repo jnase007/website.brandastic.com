@@ -27,7 +27,7 @@ export default async function AdminHome() {
             {waitingSandy === 0 ? "Nothing is waiting on you." : `${waitingSandy} sent and waiting on you.`}
           </p>
         </div>
-        <Link href="/onboarding/admin/new" className={btnPrimary}>
+        <Link href="/admin/new" className={btnPrimary}>
           New client
         </Link>
       </div>
@@ -41,13 +41,13 @@ export default async function AdminHome() {
         <div className="space-y-3">
           {clients.map((client) => {
             const percent = client.total ? Math.round((client.received / client.total) * 100) : 0;
-            const link = `${base}/onboarding/${client.slug}`;
+            const link = `${base}/${client.slug}`;
             return (
               <article key={client.id} className="rounded-2xl border border-gray-200 bg-white px-5 py-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <h2 className="text-lg font-bold">
-                      <Link href={`/onboarding/admin/clients/${client.slug}`} className="hover:underline">
+                      <Link href={`/admin/clients/${client.slug}`} className="hover:underline">
                         {client.name}
                       </Link>
                     </h2>
@@ -56,8 +56,8 @@ export default async function AdminHome() {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <CopyButton text={link} className="text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-full" />
-                    <Link href={`/onboarding/admin/clients/${client.slug}`} className="text-xs font-semibold border border-gray-300 px-3 py-1.5 rounded-full">
+                    <CopyButton text={link} label="Copy client link" className="text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-full" />
+                    <Link href={`/admin/clients/${client.slug}`} className="text-xs font-semibold border border-gray-300 px-3 py-1.5 rounded-full">
                       Open
                     </Link>
                   </div>

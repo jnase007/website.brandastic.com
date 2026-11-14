@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useState, useTransition } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { chooseContentPage, markSent } from "@/lib/actions";
 import type { Answers, CardType, ContentPage, FormSchema, ItemFile, ItemStatus, StepBlock } from "@/lib/types";
-import { CardForm, FileCard, flushCardSave } from "@/components/CardForm";
+import { CardForm, FileCard } from "@/components/CardForm";
+import { MenuForm } from "@/components/MenuForm";
+import { flushCardSave } from "@/components/useAutosave";
 import { CopyButton } from "@/components/CopyButton";
 import { GuideSteps, Paragraphs } from "@/components/RichText";
 import { btnGhost, btnPrimary } from "@/components/Shell";
@@ -110,23 +112,34 @@ export function ClientChecklist({
   }));
   const [selected, setSelected] = useState("");
   const [open, setOpen] = useState<number[]>([current]);
+  const selectedRef = useRef("");
 
   useLayoutEffect(() => {
-    const sync = () => {
+    const apply = (fromHistory: boolean) => {
       const hash = readHash();
+      if (!hash && selectedRef.current && !fromHistory) {
+        window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${selectedRef.current}`);
+        return;
+      }
+      const changed = hash !== selectedRef.current;
+      selectedRef.current = hash;
       setSelected(hash);
-      if (!hash) return;
+      if (!hash) {
+        if (fromHistory) window.scrollTo(0, 0);
+        return;
+      }
       const match = numbered.find((item) => item.anchor === hash);
       if (!match) return;
       setOpen((prev) => (prev.includes(match.phase) ? prev : [...prev, match.phase]));
-      window.scrollTo(0, 0);
+      if (changed) window.scrollTo(0, 0);
     };
-    sync();
-    window.addEventListener("hashchange", sync);
-    window.addEventListener("popstate", sync);
+    const onHistory = () => apply(true);
+    apply(false);
+    window.addEventListener("hashchange", onHistory);
+    window.addEventListener("popstate", onHistory);
     return () => {
-      window.removeEventListener("hashchange", sync);
-      window.removeEventListener("popstate", sync);
+      window.removeEventListener("hashchange", onHistory);
+      window.removeEventListener("popstate", onHistory);
     };
     // numbered is derived from items; re-sync after a status update so the open phase stays put.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -146,6 +159,7 @@ export function ClientChecklist({
         contentDocUrl={contentDocUrl}
         contentPages={contentPages}
         onBack={() => {
+          selectedRef.current = "";
           const url = window.location.pathname + window.location.search;
           window.history.pushState(null, "", url);
           setSelected("");
@@ -161,6 +175,7 @@ export function ClientChecklist({
         const inPhase = numbered
           .filter((item) => item.phase === phase.id)
           .sort((a, b) => Number(a.status === "received" || a.status === "sent") - Number(b.status === "received" || b.status === "sent"));
+        if (!inPhase.length) return null;
         const received = inPhase.filter((item) => item.status === "received").length;
         const percent = inPhase.length ? Math.round((received / inPhase.length) * 100) : 0;
         const isOpen = open.includes(phase.id);
@@ -193,26 +208,22 @@ export function ClientChecklist({
               </span>
             </button>
             {isOpen ? (
-              inPhase.length > 0 ? (
-                <div className="mt-3 grid grid-cols-1 lg:grid-cols-3 gap-3">
-                  {inPhase.map((item) => (
-                    <a
-                      key={item.id}
-                      href={`#${item.anchor}`}
-                      className="text-left rounded-2xl border border-gray-200 bg-white px-5 py-4 hover:border-gray-900 hover:shadow-sm transition group"
-                    >
-                      <div className="text-xs font-semibold text-gray-400 mb-1">{item.number}</div>
-                      <div className="text-base font-bold text-gray-900">{item.title}</div>
-                      <div className="mt-2">
-                        <StatusFlag status={item.status} />
-                      </div>
-                      <div className="text-xs text-gray-400 mt-2">View steps →</div>
-                    </a>
-                  ))}
-                </div>
-              ) : (
-                <p className="mt-3 text-sm text-gray-500 px-1">Nothing in this phase for your project.</p>
-              )
+              <div className="mt-3 grid grid-cols-1 lg:grid-cols-3 gap-3">
+                {inPhase.map((item) => (
+                  <a
+                    key={item.id}
+                    href={`#${item.anchor}`}
+                    className="text-left rounded-2xl border border-gray-200 bg-white px-5 py-4 hover:border-gray-900 hover:shadow-sm transition group"
+                  >
+                    <div className="text-xs font-semibold text-gray-400 mb-1">{item.number}</div>
+                    <div className="text-base font-bold text-gray-900">{item.title}</div>
+                    <div className="mt-2">
+                      <StatusFlag status={item.status} />
+                    </div>
+                    <div className="text-xs text-gray-400 mt-2">View steps →</div>
+                  </a>
+                ))}
+              </div>
             ) : null}
           </section>
         );
@@ -387,8 +398,13 @@ function ItemDetail({
               <GuideSteps steps={item.steps} />
             </section>
           ) : null}
-          {isWebsiteContent ? <WebsitePages contentDocUrl={contentDocUrl} pages={contentPages} /> : null}
-          {item.cardType === "form" && item.formSchema ? (
+          {isWebsiteContent ? (
+            <WebsitePages contentDocUrl={contentDocUrl} pages={contentPages.filter((page) => !page.requested)} />
+          ) : null}
+          {item.anchor === "menu" ? (
+            <MenuForm itemId={item.id} pages={contentPages} initial={item.answers} locked={locked} />
+          ) : null}
+          {item.anchor !== "menu" && item.cardType === "form" && item.formSchema ? (
             <CardForm itemId={item.id} schema={item.formSchema} initial={item.answers} locked={locked} />
           ) : null}
           {item.cardType === "file" ? (
